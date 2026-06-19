@@ -1,28 +1,46 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-// IMPORTANTE: Cambia useRouter por useNavigation
-import { useNavigation } from "@react-navigation/native"; 
+import React from "react";
+import { View, TouchableOpacity, Text, StyleSheet, Platform } from "react-native";
 
-const Navbar = () => {
-  const navigation = useNavigation(); // Ahora usamos este hook
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  // Ejemplo de cómo llamar a las rutas definidas en App.js
-  const navegarA = (ruta) => {
-    navigation.navigate(ruta);
-    setIsMobileMenuOpen(false);
-  };
-
+const Navbar = ({ onOpenMenu }) => {
   return (
     <View style={styles.navbarContainer}>
-      {/* Botones de navegación */}
-      <TouchableOpacity onPress={() => navegarA("Gasto")}>
-        <Text style={styles.linkText}>Gastos</Text>
+      <TouchableOpacity onPress={onOpenMenu} style={styles.menuButton}>
+        <Text style={styles.icon}>☰</Text>
       </TouchableOpacity>
       
-      <TouchableOpacity onPress={() => navegarA("Ingreso")}>
-        <Text style={styles.linkText}>Ingresos</Text>
-      </TouchableOpacity>
+      <Text style={styles.logo}>FinanzARC</Text>
+      
+      {/* Espaciador para equilibrar el título */}
+      <View style={{ width: 30 }} /> 
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  navbarContainer: {
+    height: Platform.OS === 'ios' ? 100 : 80,
+    paddingTop: Platform.OS === 'ios' ? 40 : 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between', // Separa el menú del logo
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    backgroundColor: '#121212',
+    borderBottomWidth: 1,
+    borderBottomColor: '#2c2c2c',
+  },
+  menuButton: { 
+    padding: 5 
+  },
+  icon: { 
+    fontSize: 28, 
+    color: '#c8b277' 
+  },
+  logo: { 
+    color: '#fff', 
+    fontSize: 18, 
+    fontWeight: 'bold',
+    letterSpacing: 1
+  }
+});
+
+export default Navbar;

@@ -1,18 +1,23 @@
 import { Picker } from "@react-native-picker/picker";
 import { useNavigation } from "@react-navigation/native";
 import { useEffect, useState } from "react";
-import { Alert, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Modal, ScrollView, Text, TextInput, TouchableOpacity, View, StyleSheet } from "react-native";
 import Svg, { Circle, G, Text as SvgText } from "react-native-svg";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import MenuLateral from "../components/MenuLateral"; // Ajusta la ruta según donde lo hayas guardado
 
 import { API_BASE_URL, API_ENDPOINTS } from "../services/api";
 import { authStorage } from "../services/auth";
 import { globalStyles } from "../styles/styles";
+import Navbar from "../components/Navbar";
+
+
 
 const GastoIngreso = () => {
   const navigation = useNavigation();
 
+  const [menuVisible, setMenuVisible] = useState(false);
   const [mostrarSaludo, setMostrarSaludo] = useState(true);
   const [datosGastos, setDatosGastos] = useState([]);
   const [datosIngresos, setDatosIngresos] = useState([]);
@@ -27,7 +32,7 @@ const GastoIngreso = () => {
   const [modalAgregarAbierto, setModalAgregarAbierto] = useState(false);
   const [modalEditarAbierto, setModalEditarAbierto] = useState(false);
   const [modalArchivarAbierto, setModalArchivarAbierto] = useState(false);
-  
+
   const [modalConfirmarEliminarAbierto, setModalConfirmarEliminarAbierto] = useState(false);
   const [metaAEliminarTemporal, setMetaAEliminarTemporal] = useState(null);
 
@@ -36,6 +41,10 @@ const GastoIngreso = () => {
 
   const [toastConfig, setToastConfig] = useState({ visible: false, mensaje: "", tipo: "warning" });
 
+
+  const toggleMenu = () => {
+    setMenuVisible(!menuVisible);
+  };
   const lanzarToast = (mensaje, tipo = "warning") => {
     setToastConfig({ visible: true, mensaje, tipo });
     setTimeout(() => setToastConfig({ visible: false, mensaje: "", tipo: "warning" }), 4500);
@@ -142,7 +151,7 @@ const GastoIngreso = () => {
           monedaOriginal: Number(item.IdDivisa) === 2 ? "USD" : Number(item.IdDivisa) === 3 ? "EUR" : "ARS"
         }));
         setDatosGastos(gastosProcesados);
-      }).catch(() => {});
+      }).catch(() => { });
   };
 
   const obtenerIngresos = (idusuario, cotizacionesData, token) => {
@@ -157,7 +166,7 @@ const GastoIngreso = () => {
           monedaOriginal: Number(item.IdDivisa) === 2 ? "USD" : Number(item.IdDivisa) === 3 ? "EUR" : "ARS"
         }));
         setDatosIngresos(ingresosProcesados);
-      }).catch(() => {});
+      }).catch(() => { });
   };
 
   const obtenerAhorros = (idusuario, cotizacionesData, token) => {
@@ -173,7 +182,7 @@ const GastoIngreso = () => {
           objetivo: convertirAPesos(item.MontoObjetivo, item.IdDivisa, cotizacionesData)
         }));
         setMetasAhorro(metasProcesadas);
-      }).catch(() => {});
+      }).catch(() => { });
   };
 
   const obtenerLimiteMetas = (idRol) => {
@@ -335,8 +344,8 @@ const GastoIngreso = () => {
       "¿Estás seguro que deseas cerrar sesión?",
       [
         { text: "Cancelar", style: "cancel" },
-        { 
-          text: "Salir", 
+        {
+          text: "Salir",
           style: "destructive",
           onPress: async () => {
             try {
@@ -344,7 +353,7 @@ const GastoIngreso = () => {
               await AsyncStorage.removeItem("Token");
               await AsyncStorage.removeItem("Nombre");
               await AsyncStorage.removeItem("Apellido");
-              
+
               // Reseteamos el stack para que el usuario no pueda volver atrás
               navigation.reset({
                 index: 0,
@@ -398,6 +407,7 @@ const GastoIngreso = () => {
     let anguloAcumulado = 0;
 
     return (
+
       <View style={globalStyles.contenedorGraficoPie}>
         <Svg width="130" height="130" viewBox="0 0 110 110">
           <G transformOrigin>
@@ -434,14 +444,37 @@ const GastoIngreso = () => {
 
   return (
     <View style={{ flex: 1, backgroundColor: "#121212" }}>
+      <Navbar onOpenMenu={toggleMenu} />
+      {/* 2. MENU LATERAL (CONDICIONAL) */}
+      {menuVisible && (
+        <View style={styles.overlayMenu}>
+          {/* 1. Área transparente que permite cerrar el menú al tocar fuera */}
+          <TouchableOpacity
+            style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }}
+            onPress={() => setMenuVisible(false)}
+            activeOpacity={1}
+          />
+
+          {/* 2. El Menú Lateral */}
+          <View style={{ position: 'absolute', height: '100%', width: '80%' }}>
+            <MenuLateral
+              onClose={() => setMenuVisible(false)}
+              onNavigate={(ruta) => {
+                setMenuVisible(false);
+                navigation.navigate(ruta); // <--- DESCOMENTA ESTO PARA QUE FUNCIONE
+              }}
+            />
+          </View>
+        </View>
+      )}
       {toastConfig.visible && (
         <View style={[globalStyles.toastBanner, { backgroundColor: toastConfig.tipo === "success" ? "#34c759" : toastConfig.tipo === "error" ? "#dc3545" : "#ff9500" }]}>
           <Text style={globalStyles.toastTexto}>{toastConfig.mensaje}</Text>
         </View>
       )}
 
-      <ScrollView style={globalStyles.contenedorPrincipal}>
-        {/* Encabezado General */}
+      {/* 3. Contenido Principal Scrollable */}
+      <ScrollView style={globalStyles.contenedorPrincipal} >
         <View style={globalStyles.seccionEncabezado}>
           <Text style={globalStyles.tituloPrincipal}>
             {mostrarSaludo ? `¡Bienvenido, ${nombreUsuario} ${apellidoUsuario}!` : "Resumen financiero"}
@@ -453,32 +486,6 @@ const GastoIngreso = () => {
           <Text style={globalStyles.cotizacionesTexto}>
             USD: ${cotizaciones.USD} | EUR: ${cotizaciones.EUR}
           </Text>
-
-          <View style={globalStyles.contenedorBotonesAccion}>
-            <TouchableOpacity style={globalStyles.botonComparativa} onPress={() => navigation.navigate("comparativa")}>
-              <Text style={globalStyles.botonComparativaTexto}>Historial General</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={globalStyles.botonComparativa} onPress={() => navigation.navigate("archivos")}>
-              <Text style={globalStyles.botonComparativaTexto}>Archivos</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[globalStyles.botonArchivar, { opacity: tienePermisoArchivar ? 1 : 0.6 }]}
-              onPress={() => {
-                if (tienePermisoArchivar) setModalArchivarAbierto(true);
-                else lanzarToast("Función Premium: Necesitas mejorar tu cuenta (Plan Gold o Platino) para poder archivar.", "warning");
-              }}
-            >
-              <Text style={globalStyles.botonArchivarTexto}>Archivar Histórico</Text>
-            </TouchableOpacity>
-            
-            {/* Botón de Cerrar Sesión */}
-            <TouchableOpacity 
-              style={[globalStyles.botonArchivar, { backgroundColor: 'transparent', borderColor: '#ff4b4b', borderWidth: 1, marginTop: 12 }]} 
-              onPress={manejarCerrarSesion}
-            >
-              <Text style={[globalStyles.botonArchivarTexto, { color: '#ff4b4b' }]}>Cerrar Sesión</Text>
-            </TouchableOpacity>
-          </View>
         </View>
 
         {/* Módulo de Gastos por Categoría */}
@@ -490,9 +497,11 @@ const GastoIngreso = () => {
               <View style={globalStyles.leyendaGrafico}>
                 {obtenerTopCinco(datosGastos).map((item, index) => (
                   <View style={globalStyles.itemLeyenda} key={index}>
-                    <View style={[globalStyles.circuloColor, { backgroundColor: COLORESgasto[index % COLORESgasto.length] }]} />
-                    <View style={globalStyles.leyendaTextoContainer}>
-                      <Text numberOfLines={1} style={globalStyles.leyendaTexto}>{item.name}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                      <View style={[globalStyles.circuloColor, { backgroundColor: COLORESgasto[index % COLORESgasto.length] }]} />
+                      <View style={globalStyles.leyendaTextoContainer}>
+                        <Text numberOfLines={1} style={globalStyles.leyendaTexto}>{item.name}</Text>
+                      </View>
                     </View>
                     <Text style={globalStyles.valorMontoGasto}>${item.valor.toLocaleString("es-AR")}</Text>
                   </View>
@@ -625,22 +634,18 @@ const GastoIngreso = () => {
         <View style={globalStyles.capaModal}>
           <View style={globalStyles.contenidoModal}>
             <Text style={[globalStyles.tituloTarjeta, { color: "#c8b277" }]}>Editar Meta de Ahorro</Text>
-            
             <View style={globalStyles.formularioGrupo}>
               <Text style={globalStyles.labelForm}>Nombre de la Meta ({metaForm.Nombre.length}/100)</Text>
-              <TextInput style={globalStyles.inputForm} value={metaForm.Nombre} maxLength={100} onChangeText={(t) => setMetaForm({...metaForm, Nombre: t})} placeholder="Ej: Fondo de Emergencia" placeholderTextColor="#666" />
+              <TextInput style={globalStyles.inputForm} value={metaForm.Nombre} maxLength={100} onChangeText={(t) => setMetaForm({ ...metaForm, Nombre: t })} placeholder="Ej: Fondo de Emergencia" placeholderTextColor="#666" />
             </View>
-
             <View style={globalStyles.formularioGrupo}>
               <Text style={globalStyles.labelForm}>Monto Actual ($)</Text>
-              <TextInput style={globalStyles.inputForm} keyboardType="numeric" value={metaForm.MontoGuardado} onChangeText={(t) => setMetaForm({...metaForm, MontoGuardado: t.replace(/[^0-9.]/g, "")})} placeholder="0.00" placeholderTextColor="#666" />
+              <TextInput style={globalStyles.inputForm} keyboardType="numeric" value={metaForm.MontoGuardado} onChangeText={(t) => setMetaForm({ ...metaForm, MontoGuardado: t.replace(/[^0-9.]/g, "") })} placeholder="0.00" placeholderTextColor="#666" />
             </View>
-
             <View style={globalStyles.formularioGrupo}>
               <Text style={globalStyles.labelForm}>Monto Objetivo ($)</Text>
-              <TextInput style={globalStyles.inputForm} keyboardType="numeric" value={metaForm.MontoObjetivo} onChangeText={(t) => setMetaForm({...metaForm, MontoObjetivo: t.replace(/[^0-9.]/g, "")})} placeholder="0.00" placeholderTextColor="#666" />
+              <TextInput style={globalStyles.inputForm} keyboardType="numeric" value={metaForm.MontoObjetivo} onChangeText={(t) => setMetaForm({ ...metaForm, MontoObjetivo: t.replace(/[^0-9.]/g, "") })} placeholder="0.00" placeholderTextColor="#666" />
             </View>
-
             <View style={globalStyles.formularioGrupo}>
               <Text style={globalStyles.labelForm}>Fecha de Inicio</Text>
               <TouchableOpacity style={globalStyles.inputForm} onPress={() => setMostrarPickerInicio(true)}>
@@ -663,7 +668,6 @@ const GastoIngreso = () => {
                 />
               )}
             </View>
-
             <View style={globalStyles.formularioGrupo}>
               <Text style={globalStyles.labelForm}>Fecha Objetivo</Text>
               <TouchableOpacity style={globalStyles.inputForm} onPress={() => setMostrarPickerObjetivo(true)}>
@@ -686,18 +690,16 @@ const GastoIngreso = () => {
                 />
               )}
             </View>
-
             <View style={globalStyles.formularioGrupo}>
               <Text style={globalStyles.labelForm}>Divisa</Text>
               <View style={globalStyles.inputSelectContainer}>
-                <Picker selectedValue={metaForm.Divisa} dropdownIconColor="#c8b277" style={globalStyles.pickerNativo} onValueChange={(itemValue) => setMetaForm({...metaForm, Divisa: itemValue})}>
+                <Picker selectedValue={metaForm.Divisa} dropdownIconColor="#c8b277" style={globalStyles.pickerNativo} onValueChange={(itemValue) => setMetaForm({ ...metaForm, Divisa: itemValue })}>
                   <Picker.Item label="ARS - Peso Argentino" value="1" />
                   <Picker.Item label="USD - Dólar Estadounidense" value="2" />
                   <Picker.Item label="EUR - Euro" value="3" />
                 </Picker>
               </View>
             </View>
-
             <View style={globalStyles.formularioAcciones}>
               <TouchableOpacity style={globalStyles.botonModalEliminar} onPress={() => manejarEliminarMeta(null)}>
                 <Text style={{ color: "#fff", fontWeight: "bold" }}>Eliminar</Text>
@@ -713,22 +715,19 @@ const GastoIngreso = () => {
         </View>
       </Modal>
 
-      {/* MODAL AGREGAR META */}
+      {/* MODAL NUEVA META */}
       <Modal visible={modalAgregarAbierto} animationType="slide" transparent={true} onRequestClose={() => setModalAgregarAbierto(false)}>
         <View style={globalStyles.capaModal}>
           <View style={globalStyles.contenidoModal}>
             <Text style={[globalStyles.tituloTarjeta, { color: "#c8b277" }]}>Nueva Meta de Ahorro</Text>
-            
             <View style={globalStyles.formularioGrupo}>
               <Text style={globalStyles.labelForm}>Nombre de la Meta ({metaForm.Nombre.length}/100)</Text>
-              <TextInput style={globalStyles.inputForm} value={metaForm.Nombre} maxLength={100} onChangeText={(t) => setMetaForm({...metaForm, Nombre: t})} placeholder="Ej: Fondo de Emergencia" placeholderTextColor="#666" />
+              <TextInput style={globalStyles.inputForm} value={metaForm.Nombre} maxLength={100} onChangeText={(t) => setMetaForm({ ...metaForm, Nombre: t })} placeholder="Ej: Fondo de Emergencia" placeholderTextColor="#666" />
             </View>
-
             <View style={globalStyles.formularioGrupo}>
               <Text style={globalStyles.labelForm}>Monto Objetivo ($)</Text>
-              <TextInput style={globalStyles.inputForm} keyboardType="numeric" value={metaForm.MontoObjetivo} onChangeText={(t) => setMetaForm({...metaForm, MontoObjetivo: t.replace(/[^0-9.]/g, "")})} placeholder="0.00" placeholderTextColor="#666" />
+              <TextInput style={globalStyles.inputForm} keyboardType="numeric" value={metaForm.MontoObjetivo} onChangeText={(t) => setMetaForm({ ...metaForm, MontoObjetivo: t.replace(/[^0-9.]/g, "") })} placeholder="0.00" placeholderTextColor="#666" />
             </View>
-
             <View style={globalStyles.formularioGrupo}>
               <Text style={globalStyles.labelForm}>Fecha de Inicio</Text>
               <TouchableOpacity style={globalStyles.inputForm} onPress={() => setMostrarPickerInicio(true)}>
@@ -751,7 +750,6 @@ const GastoIngreso = () => {
                 />
               )}
             </View>
-
             <View style={globalStyles.formularioGrupo}>
               <Text style={globalStyles.labelForm}>Fecha Objetivo</Text>
               <TouchableOpacity style={globalStyles.inputForm} onPress={() => setMostrarPickerObjetivo(true)}>
@@ -774,18 +772,16 @@ const GastoIngreso = () => {
                 />
               )}
             </View>
-
             <View style={globalStyles.formularioGrupo}>
               <Text style={globalStyles.labelForm}>Divisa</Text>
               <View style={globalStyles.inputSelectContainer}>
-                <Picker selectedValue={metaForm.Divisa} dropdownIconColor="#c8b277" style={globalStyles.pickerNativo} onValueChange={(itemValue) => setMetaForm({...metaForm, Divisa: itemValue})}>
+                <Picker selectedValue={metaForm.Divisa} dropdownIconColor="#c8b277" style={globalStyles.pickerNativo} onValueChange={(itemValue) => setMetaForm({ ...metaForm, Divisa: itemValue })}>
                   <Picker.Item label="ARS - Peso Argentino" value="1" />
                   <Picker.Item label="USD - Dólar Estadounidense" value="2" />
                   <Picker.Item label="EUR - Euro" value="3" />
                 </Picker>
               </View>
             </View>
-
             <View style={globalStyles.formularioAcciones}>
               <TouchableOpacity style={globalStyles.botonModalSecundario} onPress={() => setModalAgregarAbierto(false)}>
                 <Text style={{ color: "#fff" }}>Cancelar</Text>
@@ -798,7 +794,7 @@ const GastoIngreso = () => {
         </View>
       </Modal>
 
-      {/* MODAL PERSONALIZADO DE CONFIRMACIÓN DE ELIMINACIÓN */}
+      {/* MODAL CONFIRMAR ELIMINAR */}
       <Modal visible={modalConfirmarEliminarAbierto} animationType="fade" transparent={true} onRequestClose={() => setModalConfirmarEliminarAbierto(false)}>
         <View style={globalStyles.capaModal}>
           <View style={[globalStyles.contenidoModal, { maxWidth: '85%', paddingVertical: 24, paddingHorizontal: 20 }]}>
@@ -809,8 +805,8 @@ const GastoIngreso = () => {
               ¿Estás seguro de que querés eliminar este logro de tu historial?
             </Text>
             <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%" }}>
-              <TouchableOpacity 
-                style={[globalStyles.botonModalSecundario, { flex: 1, marginRight: 8, paddingVertical: 12 }]} 
+              <TouchableOpacity
+                style={[globalStyles.botonModalSecundario, { flex: 1, marginRight: 8, paddingVertical: 12 }]}
                 onPress={() => {
                   setModalConfirmarEliminarAbierto(false);
                   setMetaAEliminarTemporal(null);
@@ -818,8 +814,8 @@ const GastoIngreso = () => {
               >
                 <Text style={{ color: "#007aff", fontWeight: "600", fontSize: 15, textAlign: "center" }}>CANCELAR</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={[globalStyles.botonModalEliminar, { flex: 1, marginLeft: 8, paddingVertical: 12, backgroundColor: "transparent" }]} 
+              <TouchableOpacity
+                style={[globalStyles.botonModalEliminar, { flex: 1, marginLeft: 8, paddingVertical: 12, backgroundColor: "transparent" }]}
                 onPress={ejecutarEliminacionConfirmada}
               >
                 <Text style={{ color: "#ff453a", fontWeight: "bold", fontSize: 15, textAlign: "center" }}>ELIMINAR</Text>
@@ -828,9 +824,19 @@ const GastoIngreso = () => {
           </View>
         </View>
       </Modal>
-
     </View>
   );
 };
+const styles = StyleSheet.create({
+  overlayMenu: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000, // Esto asegura que el menú esté encima de todo
+    backgroundColor: 'rgba(0,0,0,0.5)', // Fondo semitransparente oscuro
+  },
+});
 
 export default GastoIngreso;

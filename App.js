@@ -34,8 +34,8 @@ export default function App() {
             cardStyle: { backgroundColor: "#121212" },
           }}
         >
-          <Stack.Screen name="comparativa" component={ComparativaScreen} options={{ title: "Balance" }} />
-          <Stack.Screen name="archivos" component={ArchivosScreen} options={{ title: "Archivos" }} />
+          <Stack.Screen name="Comparativa" component={ComparativaScreen} options={{ title: "Balance" }} />
+          <Stack.Screen name="Archivos" component={ArchivosScreen} options={{ title: "Archivos" }} />
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
           <Stack.Screen name="General" component={GeneralScreen} options={{ title: "Resumen Financiero" }} />
          

@@ -1,8 +1,11 @@
 import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Linking, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { API_BASE_URL, API_ENDPOINTS } from "../services/api";
 import { authStorage } from "../services/auth";
+
+// IMPORTAMOS LOS ESTILOS GLOBALES
+import { globalStyles } from "../styles/styles";
 
 const LoginScreen = () => {
   const navigation = useNavigation();
@@ -10,6 +13,17 @@ const LoginScreen = () => {
   const [passwordHash, setPassword] = useState("");
   const [cargando, setCargando] = useState(false);
   const [errorMensaje, setErrorMensaje] = useState("");
+  const [ocultarPassword, setOcultarPassword] = useState(true);
+
+  const abrirWeb = async () => {
+    const url = "https://tu-pagina-web.com"; 
+    const soportado = await Linking.canOpenURL(url);
+    if (soportado) {
+      await Linking.openURL(url);
+    } else {
+      console.log("No se puede abrir la URL: " + url);
+    }
+  };
 
   const manejarLogin = async () => {
     if (!NombreUsuario.trim() || !passwordHash.trim()) {
@@ -33,7 +47,6 @@ const LoginScreen = () => {
 
       const data = await respuesta.json();
       
-      // Persistencia estricta emulando localStorage web mediante AsyncStorage nativo
       await authStorage.setItem("Token", data.Token);
       await authStorage.setItem("Nombre", data.Nombre || "Usuario");
       await authStorage.setItem("Apellido", data.Apellido || "");
@@ -47,42 +60,62 @@ const LoginScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.card}>
-        <Text style={styles.logo}>FinanzArc</Text>
-        <Text style={styles.sub}>Ingreso al Ecosistema Financiero Móvil</Text>
+    <View style={globalStyles.loginContainer}>
+      <View style={globalStyles.loginCard}>
+        <Text style={globalStyles.loginLogo}>FinanzArc</Text>
+        <Text style={globalStyles.loginSub}>Ingrese al Ecosistema Financiero Móvil.</Text>
+        
+        <Text style={globalStyles.loginInfoText}>
+          Si usted no tiene una cuenta de FinanzARC deberá crearse la cuenta en nuestra página web.
+        </Text>
 
-        {errorMensaje ? <Text style={styles.errorText}>{errorMensaje}</Text> : null}
+        <TouchableOpacity onPress={abrirWeb} activeOpacity={0.7}>
+          <Text style={globalStyles.loginLinkText}>Crear cuenta en FinanzARC Web →</Text>
+        </TouchableOpacity>
+        
+        {errorMensaje ? <Text style={globalStyles.loginErrorText}>{errorMensaje}</Text> : null}
 
-        <View style={styles.group}>
-          <Text style={styles.label}>Nombre de Usuario</Text>
-          <TextInput style={styles.input} value={NombreUsuario} onChangeText={setNombreUsuario} placeholder="nombredeusuario" placeholderTextColor="#555" autoCapitalize="none" />
+        <View style={globalStyles.loginGroup}>
+          <Text style={globalStyles.loginLabel}>Nombre de Usuario</Text>
+          <TextInput 
+            style={globalStyles.loginInput} 
+            value={NombreUsuario} 
+            onChangeText={setNombreUsuario} 
+            placeholder="nombredeusuario" 
+            placeholderTextColor="#555" 
+            autoCapitalize="none" 
+          />
         </View>
 
-        <View style={styles.group}>
-          <Text style={styles.label}>Contraseña</Text>
-          <TextInput style={styles.input} value={passwordHash} onChangeText={setPassword} placeholder="••••••••" placeholderTextColor="#555" secureTextEntry={true} />
+        <View style={globalStyles.loginGroup}>
+          <Text style={globalStyles.loginLabel}>Contraseña</Text>
+          
+          <View style={globalStyles.loginPasswordContainer}>
+            <TextInput 
+              style={globalStyles.loginPasswordInput} 
+              value={passwordHash} 
+              onChangeText={setPassword} 
+              placeholder="••••••••" 
+              placeholderTextColor="#555" 
+              secureTextEntry={ocultarPassword}
+            />
+            <TouchableOpacity 
+              style={globalStyles.loginEyeButton} 
+              onPress={() => setOcultarPassword(!ocultarPassword)}
+            >
+              <Text style={globalStyles.loginEyeText}>
+                {ocultarPassword ? "Mostrar" : "Ocultar"}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        <TouchableOpacity style={styles.btn} onPress={manejarLogin} disabled={cargando}>
-          {cargando ? <ActivityIndicator color="#121212" /> : <Text style={styles.btnText}>Iniciar Sesión</Text>}
+        <TouchableOpacity style={globalStyles.loginBtn} onPress={manejarLogin} disabled={cargando}>
+          {cargando ? <ActivityIndicator color="#121212" /> : <Text style={globalStyles.loginBtnText}>Iniciar Sesión</Text>}
         </TouchableOpacity>
       </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#121212", justifyContent: "center", padding: 20 },
-  card: { backgroundColor: "#1e1e1f", borderRadius: 16, padding: 24, borderWidth: 1, borderColor: "rgba(200,178,119,0.2)" },
-  logo: { fontSize: 28, fontWeight: "bold", color: "#c8b277", textAlign: "center" },
-  sub: { fontSize: 13, color: "#8e8e93", textAlign: "center", marginBottom: 24, marginTop: 4 },
-  group: { marginBottom: 16 },
-  label: { color: "#fff", fontSize: 13, marginBottom: 6, fontWeight: "600" },
-  input: { backgroundColor: "#2c2c2e", borderRadius: 8, padding: 12, color: "#fff", fontSize: 15 },
-  btn: { backgroundColor: "#c8b277", borderRadius: 8, padding: 14, alignItems: "center", marginTop: 10 },
-  btnText: { color: "#121212", fontWeight: "bold", fontSize: 15 },
-  errorText: { color: "#ff4b4b", fontSize: 13, textAlign: "center", marginBottom: 12, fontWeight: "500" }
-});
 
 export default LoginScreen;
