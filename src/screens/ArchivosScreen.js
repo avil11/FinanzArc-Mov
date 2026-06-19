@@ -5,8 +5,8 @@ import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from "@react-navigation/native";
 
-const API_BASE_URL = "http://192.168.100.3:45455/api";
-const SERVER_HOST = "http://192.168.100.3:45455/api";
+const API_BASE_URL = "http://192.168.1.126:45455/api";
+const SERVER_HOST = "http://192.168.1.126:45455/api";
 
 export default function ArchivosScreen() {
   const navigation = useNavigation();
