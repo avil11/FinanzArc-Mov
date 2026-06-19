@@ -5,13 +5,12 @@ const MenuLateral = ({ onClose, onNavigate }) => {
   return (
     <View style={styles.menuContainer}>
       <Text style={styles.titulo}>Menú Principal</Text>
-      
-      <TouchableOpacity style={styles.item} onPress={() => navigation.navigate('Historial')}>
+      <TouchableOpacity style={styles.item} onPress={() => onNavigate('Comparativa')}>
         <Text style={styles.icono}>📊</Text>
         <Text style={styles.texto}>Historial General</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.item} onPress={() => navigation.navigate('Archivos')}>
+      <TouchableOpacity style={styles.item} onPress={() => onNavigate('Archivos')}>
         <Text style={styles.icono}>📁</Text>
         <Text style={styles.texto}>Archivos</Text>
       </TouchableOpacity>
@@ -26,7 +25,7 @@ const MenuLateral = ({ onClose, onNavigate }) => {
 };
 
 const styles = StyleSheet.create({
- menuContainer: {
+  menuContainer: {
     width: '80%', // <-- AGREGA ESTO: No uses flex: 1 solo
     height: '100%',
     backgroundColor: '#121212', // Fondo oscuro
