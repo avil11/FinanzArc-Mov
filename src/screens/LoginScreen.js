@@ -66,7 +66,7 @@ const LoginScreen = () => {
         <Text style={globalStyles.loginSub}>Ingrese al Ecosistema Financiero Móvil.</Text>
         
         <Text style={globalStyles.loginInfoText}>
-          Si usted no tiene una cuenta de FinanzARC deberá crearse la cuenta en nuestra página web.
+          Si usted no tiene una cuenta de FinanzARC, diríjase a nuestra página web para crear una.
         </Text>
 
         <TouchableOpacity onPress={abrirWeb} activeOpacity={0.7}>
