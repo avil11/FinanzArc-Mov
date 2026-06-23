@@ -1,23 +1,36 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+
 
 const MenuLateral = ({ onClose, onNavigate }) => {
+  const navigation = useNavigation();
+
+  const cerrarSesion = () => {
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Login" }],
+    });
+    console.log("Sesión cerrada");
+  };
+
   return (
+    
     <View style={styles.menuContainer}>
       <Text style={styles.titulo}>Menú Principal</Text>
-      <TouchableOpacity style={styles.item} onPress={() => onNavigate('Comparativa')}>
+      <TouchableOpacity style={styles.item} onPress={() => navigation.navigate("Movimientos")}>
         <Text style={styles.icono}>📊</Text>
         <Text style={styles.texto}>Historial General</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.item} onPress={() => onNavigate('Archivos')}>
+      <TouchableOpacity style={styles.item} onPress={() => navigation.navigate("Archivos")}>
         <Text style={styles.icono}>📁</Text>
         <Text style={styles.texto}>Archivos</Text>
       </TouchableOpacity>
 
       <View style={styles.separador} />
 
-      <TouchableOpacity style={styles.itemCerrar} onPress={onClose}>
+      <TouchableOpacity style={styles.itemCerrar} onPress={() => {cerrarSesion(); onClose();}}>
         <Text style={styles.textoCerrar}>Cerrar Sesión</Text>
       </TouchableOpacity>
     </View>
@@ -44,6 +57,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 25
+  },
+  icono: {
+    fontSize: 24,
+    marginRight: 10
   },
   texto: {
     color: '#fff',

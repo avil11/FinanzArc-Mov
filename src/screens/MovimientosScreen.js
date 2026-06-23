@@ -1,0 +1,244 @@
+import React, { useEffect, useState, useMemo, useCallback } from "react";
+import { View, Text, ActivityIndicator, FlatList, TextInput, Alert } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { globalStyles } from "../styles/styles"; // <-- IMPORTACIÓN GLOBAL
+
+const API_BASE_URL = "http://192.168.100.3:45455/api";
+
+// Función reutilizable de normalización
+const normalizarMovimiento = (item, tipoOrigen) => {
+  // 1. ID (Usamos ?? para que no descarte un ID = 0)
+  const id = 
+    item.id ?? 
+    item.Id ?? 
+    item.IdIngreso ?? 
+    item.IdGasto ?? 
+    item.IdHistorialIngreso ?? 
+    item.IdHistorialGasto ?? 
+    item.IdMovimiento;
+
+  // 2. Descripción
+  const descripcion = 
+    item.descripcion || 
+    item.Descripcion || 
+    item.detalle || 
+    item.Detalle || 
+    item.concepto || 
+    item.Concepto || 
+    "Sin descripción";
+
+  // 3. Fecha
+  const fecha = 
+    item.fecha || 
+    item.Fecha || 
+    item.fechaMovimiento || 
+    item.FechaMovimiento || 
+    item.fechaRegistro || 
+    item.FechaRegistro || 
+    item.fechaCreacion || 
+    item.FechaCreacion || 
+    "";
+
+  // 4. Monto (Parseado de forma segura a Number)
+  const montoBruto = 
+    item.monto ?? 
+    item.Monto ?? 
+    item.valor ?? 
+    item.Valor ?? 
+    item.total ?? 
+    item.Total ?? 
+    item.Importe ?? 
+    item.importe;
+  const monto = Number(montoBruto) || 0;
+
+  // 5. Determinar Tipo
+  const tipo = (tipoOrigen === "Ingreso" || tipoOrigen === "HistorialIngreso") ? "ingreso" : "gasto";
+
+  return {
+    id,
+    descripcion,
+    fecha,
+    monto,
+    tipo,
+    origen: tipoOrigen
+  };
+};
+
+const MovimientosScreen = () => {
+  const [transacciones, setTransacciones] = useState([]);
+  const [busqueda, setBusqueda] = useState("");
+  const [cargando, setCargando] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = await AsyncStorage.getItem("Token");
+        console.log("TOKEN:", token);
+
+        const resUser = await fetch(`${API_BASE_URL}/Usuarios/ByToken`, { 
+            headers: { "Authorization": `Bearer ${token}` } 
+        });
+        const userData = await resUser.json();
+        console.log("USUARIO:", userData);
+
+        const userId = userData.IdUsuario;
+        console.log("ID USUARIO:", userId);
+
+        console.log("Consultando Ingresos...");
+        console.log("Consultando Gastos...");
+        console.log("Consultando Historial Ingresos...");
+        console.log("Consultando Historial Gastos...");
+
+        const authHeaders = { "Authorization": `Bearer ${token}` };
+
+        // Helper interno para rechazar la promesa de un endpoint individual si el HTTP da error
+        const fetchEndpoint = (endpoint) => 
+          fetch(`${API_BASE_URL}${endpoint}`, { headers: authHeaders })
+            .then(r => r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`));
+
+        const [
+          ingresosResponse,
+          gastosResponse,
+          historialIngresosResponse,
+          historialGastosResponse
+        ] = await Promise.allSettled([
+          fetchEndpoint(`/Ingreso/ByUsuario/${userId}`),
+          fetchEndpoint(`/Gasto/ByUsuario/${userId}`),
+          fetchEndpoint(`/HistorialIngreso/ByUsuario/${userId}`),
+          fetchEndpoint(`/HistorialGasto/ByUsuario/${userId}`)
+        ]);
+
+        console.log("Ingreso:", ingresosResponse);
+        console.log("Gasto:", gastosResponse);
+        console.log("HistorialIngreso:", historialIngresosResponse);
+        console.log("HistorialGasto:", historialGastosResponse);
+
+        // Procesar cada respuesta (si falló, loguea silenciosamente y devuelve array vacío)
+        const extraerDatos = (resultado, origen) => {
+          if (resultado.status === 'fulfilled' && Array.isArray(resultado.value)) {
+            return resultado.value.map(item => normalizarMovimiento(item, origen));
+          }
+          if (resultado.status === 'rejected') {
+            console.warn(`[Advertencia] Falló la API de ${origen}:`, resultado.reason);
+          }
+          return [];
+        };
+
+        const ingresos = extraerDatos(ingresosResponse, "Ingreso");
+        const gastos = extraerDatos(gastosResponse, "Gasto");
+        const historialIngresos = extraerDatos(historialIngresosResponse, "HistorialIngreso");
+        const historialGastos = extraerDatos(historialGastosResponse, "HistorialGasto");
+
+        // Unificación
+        const todosMovimientos = [
+           ...ingresos,
+           ...gastos,
+           ...historialIngresos,
+           ...historialGastos
+        ];
+
+        // Ordenamiento descendente
+        todosMovimientos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+        // Evitar duplicados comparando (id + fecha + monto) mediante un Set de firmas
+        const firmasVistas = new Set();
+        const unicos = todosMovimientos.filter(item => {
+          const firma = `${item.id}-${item.fecha}-${item.monto}`;
+          if (firmasVistas.has(firma)) {
+            return false;
+          }
+          firmasVistas.add(firma);
+          return true;
+        });
+
+        console.log("TOTAL INGRESOS:", ingresos.length);
+        console.log("TOTAL GASTOS:", gastos.length);
+        console.log("TOTAL HISTORIAL INGRESOS:", historialIngresos.length);
+        console.log("TOTAL HISTORIAL GASTOS:", historialGastos.length);
+        console.log("TOTAL COMBINADO:", unicos.length);
+        console.log("MOVIMIENTOS FINALES:", unicos);
+
+        setTransacciones(unicos);
+
+      } catch (error) {
+        console.error("Error crítico en la carga de movimientos:", error);
+        Alert.alert("Error", "No se pudieron cargar los movimientos");
+      } finally {
+        setCargando(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const datosFiltrados = useMemo(() => {
+    if (!busqueda.trim()) return transacciones;
+    return transacciones.filter((item) => item.descripcion?.toLowerCase().includes(busqueda.toLowerCase()));
+  }, [transacciones, busqueda]);
+
+  const renderItem = useCallback(({ item }) => {
+    const esGasto = item.tipo === "gasto";
+
+    return (
+      <View style={globalStyles.tarjetaMovimiento}>
+        <View style={globalStyles.movimientoInfo}>
+          <Text style={globalStyles.movimientoDesc} numberOfLines={1}>{item.descripcion}</Text>
+          <Text style={globalStyles.movimientoFecha}>{new Date(item.fecha).toLocaleDateString("es-AR")}</Text>
+        </View>
+
+        <View style={globalStyles.movimientoMontoCaja}>
+          <Text style={[globalStyles.movimientoMonto, { color: esGasto ? "#ff4b4b" : "#34c759" }]}>
+            {esGasto ? "-" : "+"} ${(item.monto || 0).toLocaleString("es-AR")}
+          </Text>
+          <Text style={globalStyles.movimientoTipo}>{esGasto ? "GASTO" : "INGRESO"}</Text>
+        </View>
+      </View>
+    );
+  }, []);
+
+  if (cargando) {
+    return (
+      <View style={globalStyles.centroTotal}>
+        <ActivityIndicator size="large" color="#c8b277" />
+      </View>
+    );
+  }
+
+  return (
+    <View style={globalStyles.contenedorPrincipal}>
+      <View style={globalStyles.seccionEncabezado}>
+        <Text style={globalStyles.tituloPrincipal}>Historial General</Text>
+        <Text style={globalStyles.descripcionEncabezado}>Filtrado detallado de todas sus transacciones.</Text>
+      </View>
+
+      <View style={globalStyles.buscadorContenedor}>
+        <Text style={globalStyles.buscadorIcono}>🔍</Text>
+        <TextInput
+          style={globalStyles.buscadorInput}
+          placeholder="Buscar por descripción..."
+          placeholderTextColor="#8e8e93"
+          value={busqueda}
+          onChangeText={setBusqueda}
+        />
+      </View>
+
+      {datosFiltrados.length === 0 ? (
+        <View style={globalStyles.avisoVacio}>
+          <Text style={globalStyles.mensajeVacio}>No se encontraron transacciones.</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={datosFiltrados}
+          keyExtractor={(item, index) => item.id ? item.id.toString() : index.toString()}
+          renderItem={renderItem}
+          contentContainerStyle={globalStyles.listaContenedor}
+          showsVerticalScrollIndicator={false}
+          initialNumToRender={15}
+          windowSize={5}
+        />
+      )}
+    </View>
+  );
+};
+
+export default MovimientosScreen;

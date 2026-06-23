@@ -461,7 +461,7 @@ const GastoIngreso = () => {
               onClose={() => setMenuVisible(false)}
               onNavigate={(ruta) => {
                 setMenuVisible(false);
-                navigation.navigate(ruta); // <--- DESCOMENTA ESTO PARA QUE FUNCIONE
+                navigation.navigate("Archivos"); // <--- DESCOMENTA ESTO PARA QUE FUNCIONE
               }}
             />
           </View>

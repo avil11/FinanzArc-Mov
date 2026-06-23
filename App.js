@@ -8,7 +8,7 @@ import 'react-native-gesture-handler';
 
 import LoginScreen from "./src/screens/LoginScreen";
 import GeneralScreen from "./src/screens/GeneralScreen";
-import ComparativaScreen from "./src/screens/Comparativa";
+import MovimientosScreen from "./src/screens/MovimientosScreen";
 import ArchivosScreen from "./src/screens/ArchivosScreen";
 import Navbar from "./src/components/Navbar";
 
@@ -34,8 +34,8 @@ export default function App() {
             cardStyle: { backgroundColor: "#121212" },
           }}
         >
-          <Stack.Screen name="Comparativa" component={ComparativaScreen} options={{ title: "Balance" }} />
-<Stack.Screen name="Archivos" component={ArchivosScreen} options={{ title: "Archivos" }} />
+          <Stack.Screen name="Movimientos" component={MovimientosScreen} options={{ title: "Movimientos" }} />
+          <Stack.Screen name="Archivos" component={ArchivosScreen} options={{ title: "Archivos" }} />
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
           <Stack.Screen name="General" component={GeneralScreen} options={{ title: "Resumen Financiero" }} />
          
