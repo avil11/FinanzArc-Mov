@@ -3,11 +3,17 @@ import { View, Text, ActivityIndicator, FlatList, TextInput, Alert } from "react
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { globalStyles } from "../styles/styles"; // <-- IMPORTACIÓN GLOBAL
 
-const API_BASE_URL = "http://192.168.100.3:45455/api";
+const API_BASE_URL = "http://192.168.1.126:45457/api";
+
+// Diccionario de divisas basado en tu API
+const MAPA_DIVISAS = {
+  1: { simbolo: "$", codigo: "ARS" },
+  2: { simbolo: "U$D", codigo: "USD" },
+  3: { simbolo: "€", codigo: "EUR" }
+};
 
 // Función reutilizable de normalización
 const normalizarMovimiento = (item, tipoOrigen) => {
-  // 1. ID (Usamos ?? para que no descarte un ID = 0)
   const id = 
     item.id ?? 
     item.Id ?? 
@@ -17,7 +23,6 @@ const normalizarMovimiento = (item, tipoOrigen) => {
     item.IdHistorialGasto ?? 
     item.IdMovimiento;
 
-  // 2. Descripción
   const descripcion = 
     item.descripcion || 
     item.Descripcion || 
@@ -27,31 +32,37 @@ const normalizarMovimiento = (item, tipoOrigen) => {
     item.Concepto || 
     "Sin descripción";
 
-  // 3. Fecha
   const fecha = 
     item.fecha || 
     item.Fecha || 
+    item.FechaIngreso || 
+    item.FechaGasto || 
     item.fechaMovimiento || 
     item.FechaMovimiento || 
     item.fechaRegistro || 
     item.FechaRegistro || 
     item.fechaCreacion || 
     item.FechaCreacion || 
-    "";
+    new Date().toISOString(); 
 
-  // 4. Monto (Parseado de forma segura a Number)
   const montoBruto = 
     item.monto ?? 
     item.Monto ?? 
+    item.MontoIngreso ?? 
+    item.MontoGasto ?? 
     item.valor ?? 
     item.Valor ?? 
     item.total ?? 
     item.Total ?? 
     item.Importe ?? 
     item.importe;
+    
   const monto = Number(montoBruto) || 0;
 
-  // 5. Determinar Tipo
+  // CAPTURAMOS LA DIVISA
+  const idDivisa = item.idDivisa ?? item.IdDivisa ?? 1; // Por defecto 1 (ARS) si no viene
+  const divisaInfo = MAPA_DIVISAS[idDivisa] || MAPA_DIVISAS[1];
+
   const tipo = (tipoOrigen === "Ingreso" || tipoOrigen === "HistorialIngreso") ? "ingreso" : "gasto";
 
   return {
@@ -60,7 +71,9 @@ const normalizarMovimiento = (item, tipoOrigen) => {
     fecha,
     monto,
     tipo,
-    origen: tipoOrigen
+    origen: tipoOrigen,
+    simboloDivisa: divisaInfo.simbolo, // <-- Guardamos el símbolo ($, U$D, €)
+    codigoDivisa: divisaInfo.codigo    // <-- Guardamos el código (ARS, USD, EUR)
   };
 };
 
@@ -176,25 +189,38 @@ const MovimientosScreen = () => {
     return transacciones.filter((item) => item.descripcion?.toLowerCase().includes(busqueda.toLowerCase()));
   }, [transacciones, busqueda]);
 
-  const renderItem = useCallback(({ item }) => {
-    const esGasto = item.tipo === "gasto";
+ // ... dentro de MovimientosScreen
 
-    return (
-      <View style={globalStyles.tarjetaMovimiento}>
-        <View style={globalStyles.movimientoInfo}>
-          <Text style={globalStyles.movimientoDesc} numberOfLines={1}>{item.descripcion}</Text>
-          <Text style={globalStyles.movimientoFecha}>{new Date(item.fecha).toLocaleDateString("es-AR")}</Text>
-        </View>
+const renderItem = useCallback(({ item }) => {
+  const esGasto = item.tipo === "gasto";
 
-        <View style={globalStyles.movimientoMontoCaja}>
-          <Text style={[globalStyles.movimientoMonto, { color: esGasto ? "#ff4b4b" : "#34c759" }]}>
-            {esGasto ? "-" : "+"} ${(item.monto || 0).toLocaleString("es-AR")}
-          </Text>
-          <Text style={globalStyles.movimientoTipo}>{esGasto ? "GASTO" : "INGRESO"}</Text>
-        </View>
+  return (
+    <View style={globalStyles.tarjetaMovimiento}>
+      {/* Contenedor del Icono/Indicador */}
+      <View style={[globalStyles.iconoMovimiento, { backgroundColor: esGasto ? "rgba(255, 75, 75, 0.1)" : "rgba(52, 199, 89, 0.1)" }]}>
+        <Text style={{ fontSize: 20 }}>{esGasto ? "⬇️" : "⬆️"}</Text>
       </View>
-    );
-  }, []);
+
+      {/* Información principal */}
+      <View style={{ flex: 1 }}>
+        <Text style={globalStyles.movimientoDesc} numberOfLines={1}>{item.descripcion}</Text>
+        <Text style={globalStyles.movimientoFecha}>
+           {new Date(item.fecha).toLocaleDateString("es-AR", { day: 'numeric', month: 'short', year: 'numeric' })}
+        </Text>
+      </View>
+
+      {/* Monto y Código de divisa */}
+      <View style={{ alignItems: "flex-end" }}>
+        <Text style={[globalStyles.movimientoMonto, { color: esGasto ? "#ff4b4b" : "#34c759" }]}>
+          {esGasto ? "-" : "+"} {item.simboloDivisa}{(item.monto || 0).toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+        </Text>
+        <Text style={globalStyles.movimientoTipo}>
+           {item.codigoDivisa !== "ARS" ? item.codigoDivisa : "ARS"}
+        </Text>
+      </View>
+    </View>
+  );
+}, []);
 
   if (cargando) {
     return (
@@ -229,7 +255,8 @@ const MovimientosScreen = () => {
       ) : (
         <FlatList
           data={datosFiltrados}
-          keyExtractor={(item, index) => item.id ? item.id.toString() : index.toString()}
+          // EL CAMBIO ESTÁ EN ESTA LÍNEA 👇
+          keyExtractor={(item, index) => item.id ? `${item.tipo}-${item.id}` : index.toString()}
           renderItem={renderItem}
           contentContainerStyle={globalStyles.listaContenedor}
           showsVerticalScrollIndicator={false}
@@ -237,6 +264,7 @@ const MovimientosScreen = () => {
           windowSize={5}
         />
       )}
+
     </View>
   );
 };

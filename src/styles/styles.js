@@ -1,8 +1,9 @@
 import { StyleSheet } from "react-native";
 
 export const globalStyles = StyleSheet.create({
+
   // ==========================================
-  // 1. ESTILOS DE LOGIN SCREEN
+  // 1. AUTENTICACIÓN Y LOGIN
   // ==========================================
   loginContainer: { flex: 1, backgroundColor: "#121212", justifyContent: "center", padding: 20 },
   loginCard: { backgroundColor: "#1e1e1f", borderRadius: 16, padding: 24, borderWidth: 1, borderColor: "rgba(200,178,119,0.2)" },
@@ -22,26 +23,54 @@ export const globalStyles = StyleSheet.create({
   loginEyeText: { color: "#c8b277", fontSize: 12, fontWeight: "bold" },
 
   // ==========================================
-  // 2. ESTILOS DE GENERAL SCREEN (Resumen Financiero)
+  // 2. LAYOUT GENERAL Y ENCABEZADOS
   // ==========================================
   contenedorPrincipal: { flex: 1, padding: 20 },
   seccionEncabezado: { marginBottom: 24 },
   tituloPrincipal: { fontSize: 24, fontWeight: "bold", color: "#c8b277", marginBottom: 8 },
   descripcionEncabezado: { color: "#8e8e93", fontSize: 14, lineHeight: 20, marginBottom: 4 },
   cotizacionesTexto: { color: "#c8b277", fontSize: 14, fontWeight: "bold", marginTop: 8, fontStyle: "italic" },
-  
-  // Botones
+  centroTotal: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#121212" },
+
+  // ==========================================
+  // 3. BOTONES Y ACCIONES
+  // ==========================================
   contenedorBotonesAccion: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 16 },
-  botonComparativa: { backgroundColor: "#c8b277", paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, flex: 1, minWidth: "45%", alignItems: "center" },
+  botonComparativa: { backgroundColor: "#c8b277", paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, flex: 1, maxWidth: "40%", alignItems: "center" },
   botonComparativaTexto: { color: "#121212", fontWeight: "bold", fontSize: 14 },
   botonArchivar: { backgroundColor: "transparent", borderWidth: 1, borderColor: "#c8b277", paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, width: "100%", alignItems: "center", marginTop: 4 },
   botonArchivarTexto: { color: "#c8b277", fontWeight: "bold", fontSize: 14 },
+  botonMejorarPlan: { backgroundColor: "#c8b277", paddingVertical: 14, width: "100%", alignItems: "center", borderRadius: 12, marginBottom: 12 },
+  botonVolver: { paddingVertical: 14, width: "100%", alignItems: "center", backgroundColor: "transparent" },
+  textoVolver: { color: "#8e8e93", fontWeight: "600", fontSize: 14 },
+  botonSecundarioBorde: { paddingVertical: 12, width: "100%", alignItems: "center", borderWidth: 1, borderColor: "#8e8e93", borderRadius: 8, marginTop: 10 },
+  textoSecundarioBorde: { color: "#ffffff", fontWeight: "600" },
 
-  // Tarjetas y Módulos
+  // ==========================================
+  // 4. TARJETAS Y LISTAS (Movimientos)
+  // ==========================================
   tarjetaGeneral: { backgroundColor: "#1e1e1f", borderRadius: 16, padding: 20, marginBottom: 20, borderWidth: 1, borderColor: "rgba(200,178,119,0.2)" },
   tituloTarjeta: { fontSize: 18, fontWeight: "bold", color: "#ffffff", marginBottom: 16 },
+  tarjetaMovimiento: { flexDirection: "row", alignItems: "center", backgroundColor: "#1e1e1f", borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
+  iconoMovimiento: { width: 44, height: 44, borderRadius: 12, justifyContent: "center", alignItems: "center", marginRight: 16 },
+  movimientoDesc: { color: "#ffffff", fontSize: 15, fontWeight: "600", marginBottom: 2 },
+  movimientoFecha: { color: "#8e8e93", fontSize: 12 },
+  movimientoMonto: { fontSize: 16, fontWeight: "800" },
+  movimientoTipo: { color: "#8e8e93", fontSize: 11, letterSpacing: 0.5, marginTop: 2 },
+
+  // ==========================================
+  // 5. METAS Y GRÁFICOS
+  // ==========================================
+  infoLimitesPlan: { backgroundColor: "#1e1e1f", padding: 16, borderRadius: 12, marginBottom: 16, borderWidth: 1, borderColor: "rgba(200,178,119,0.1)" },
+  tarjetaAhorroItem: { backgroundColor: "#1e1e1f", borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: "rgba(200,178,119,0.2)" },
+  filaProgreso: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
+  pistaBarra: { height: 6, backgroundColor: "#2c2c2e", borderRadius: 3, marginBottom: 8, overflow: "hidden" },
+  rellenoBarra: { height: "100%", backgroundColor: "#c8b277", borderRadius: 3 },
+  textoMontoProgreso: { color: "#8e8e93", fontSize: 12, marginBottom: 12 },
+  botonEditarAhorro: { alignSelf: "flex-end", paddingVertical: 6, paddingHorizontal: 12, backgroundColor: "#2c2c2e", borderRadius: 6 },
+  botonEditarAhorroTexto: { color: "#c8b277", fontSize: 12, fontWeight: "bold" },
+  tarjetaLogro: { backgroundColor: "#1e1e1f", borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: "#c8b277" },
   
-  // Gráficos
   graficoConLeyenda: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   contenedorGraficoPie: { width: 130, height: 130, justifyContent: "center", alignItems: "center" },
   leyendaGrafico: { flex: 1, marginLeft: 20 },
@@ -52,18 +81,9 @@ export const globalStyles = StyleSheet.create({
   valorMontoGasto: { color: "#ff4b4b", fontSize: 12, fontWeight: "bold" },
   valorMontoIngreso: { color: "#34c759", fontSize: 12, fontWeight: "bold" },
 
-  // Metas de Ahorro
-  infoLimitesPlan: { backgroundColor: "#1e1e1f", padding: 16, borderRadius: 12, marginBottom: 16, borderWidth: 1, borderColor: "rgba(200,178,119,0.1)" },
-  tarjetaAhorroItem: { backgroundColor: "#1e1e1f", borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: "rgba(200,178,119,0.2)" },
-  filaProgreso: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
-  pistaBarra: { height: 6, backgroundColor: "#2c2c2e", borderRadius: 3, marginBottom: 8, overflow: "hidden" },
-  rellenoBarra: { height: "100%", backgroundColor: "#c8b277", borderRadius: 3 },
-  textoMontoProgreso: { color: "#8e8e93", fontSize: 12, marginBottom: 12 },
-  botonEditarAhorro: { alignSelf: "flex-end", paddingVertical: 6, paddingHorizontal: 12, backgroundColor: "#2c2c2e", borderRadius: 6 },
-  botonEditarAhorroTexto: { color: "#c8b277", fontSize: 12, fontWeight: "bold" },
-  tarjetaLogro: { backgroundColor: "#1e1e1f", borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: "#c8b277" },
-
-  // Modales
+  // ==========================================
+  // 6. MODALES Y FORMULARIOS
+  // ==========================================
   capaModal: { flex: 1, backgroundColor: "rgba(0,0,0,0.8)", justifyContent: "center", alignItems: "center", padding: 20 },
   contenidoModal: { backgroundColor: "#1e1e1f", width: "100%", borderRadius: 16, padding: 24, borderWidth: 1, borderColor: "rgba(200,178,119,0.3)" },
   formularioGrupo: { marginBottom: 16 },
@@ -71,64 +91,30 @@ export const globalStyles = StyleSheet.create({
   inputForm: { backgroundColor: "#2c2c2e", borderRadius: 8, padding: 12, color: "#ffffff", fontSize: 15 },
   inputSelectContainer: { backgroundColor: "#2c2c2e", borderRadius: 8, overflow: "hidden" },
   pickerNativo: { color: "#ffffff", backgroundColor: "#2c2c2e" },
-  formularioAcciones: { flexDirection: "row", justifyContent: "flex-end", gap: 12, marginTop: 20 },
-  botonModalSecundario: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: "#2c2c2e" },
-  botonModalPrimario: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: "#c8b277" },
-  botonModalEliminar: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: "#ff4b4b" },
-
-  // Toasts y Alertas
-  toastBanner: { position: "absolute", top: 50, left: 20, right: 20, padding: 16, borderRadius: 8, zIndex: 1000, alignItems: "center", elevation: 5 },
-  toastTexto: { color: "#ffffff", fontWeight: "bold", fontSize: 14, textAlign: "center" },
-  avisoVacio: { alignItems: "center", paddingVertical: 20 },
-  iconoPlaceholder: { fontSize: 32, marginBottom: 8 },
-  mensajeVacio: { color: "#ffffff", fontSize: 14, fontWeight: "bold", marginBottom: 4 },
-  sugerenciaVacio: { color: "#8e8e93", fontSize: 12 },
+  botonModalBase: { flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center', minHeight: 48 },
+  formularioAcciones: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 20, paddingHorizontal: 5 },
+  botonModalSecundario: { backgroundColor: "#2c2c2e" },
+  botonModalPrimario: { backgroundColor: "#c8b277" },
+  botonModalEliminar: { backgroundColor: "#ff4b4b" },
 
   // ==========================================
-  // 3. ESTILOS DE COMPARATIVA Y ARCHIVOS
+  // 7. ALERTAS, BLOQUEOS Y ESTADOS VACÍOS
   // ==========================================
-  // Buscador y Listas (Comparativa)
-  buscadorContenedor: { flexDirection: "row", alignItems: "center", backgroundColor: "#1e1e1f", borderRadius: 10, paddingHorizontal: 12, borderWidth: 1, borderColor: "rgba(200,178,119,0.2)", marginBottom: 20 },
-  buscadorInput: { flex: 1, color: "#fff", paddingVertical: 12, fontSize: 15 },
-  buscadorIcono: { fontSize: 16, marginRight: 8, color: "#8e8e93" },
-  listaContenedor: { paddingBottom: 40 },
-  tarjetaMovimiento: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", backgroundColor: "#1e1e1f", borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
-  movimientoInfo: { flex: 1, marginRight: 15 },
-  movimientoDesc: { color: "#ffffff", fontSize: 16, fontWeight: "600", marginBottom: 4 },
-  movimientoFecha: { color: "#8e8e93", fontSize: 12 },
-  movimientoMontoCaja: { alignItems: "flex-end" },
-  movimientoMonto: { fontSize: 16, fontWeight: "bold", marginBottom: 4 },
-  movimientoTipo: { color: "#c8b277", fontSize: 10, letterSpacing: 1, fontWeight: "bold" },
-  
-  // Tabs, Filtros y Tarjetas (Archivos)
-  filtrosRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 20 },
-  pickerWrapperFiltro: { flex: 1, backgroundColor: "#1e1e1f", borderRadius: 8, borderWidth: 1, borderColor: "rgba(200,178,119,0.2)", marginHorizontal: 4, overflow: "hidden" },
-  tabsContenedor: { flexDirection: "row", marginBottom: 20, borderRadius: 8, overflow: "hidden", borderWidth: 1, borderColor: "rgba(200,178,119,0.2)" },
-  tabBoton: { flex: 1, paddingVertical: 14, alignItems: "center", backgroundColor: "#1a1a1a" },
-  tabBotonActivo: { backgroundColor: "rgba(200,178,119,0.15)", borderBottomWidth: 3, borderBottomColor: "#c8b277" },
-  tabTexto: { color: "#8e8e93", fontWeight: "600", fontSize: 15 },
-  tabTextoActivo: { color: "#ffffff", fontWeight: "bold" },
-  
-  tarjetaArchivo: { backgroundColor: "#1e1e1f", borderWidth: 1, borderColor: "rgba(255,255,255,0.05)", borderRadius: 12, padding: 16, marginBottom: 16 },
-  archivoPreviewCaja: { height: 120, backgroundColor: "#121212", borderRadius: 8, justifyContent: "center", alignItems: "center", overflow: "hidden", marginBottom: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
-  archivoImagen: { width: "100%", height: "100%", resizeMode: "cover" },
-  archivoIconoGenerico: { backgroundColor: "rgba(200,178,119,0.1)", paddingVertical: 15, paddingHorizontal: 25, borderRadius: 8, borderWidth: 1, borderColor: "rgba(200,178,119,0.3)", borderStyle: "dashed" },
-  archivoIconoTexto: { color: "#c8b277", fontWeight: "bold", fontSize: 22 },
-  archivoDetalles: { marginBottom: 15 },
-  archivoTitulo: { color: "#ffffff", fontSize: 16, fontWeight: "bold", marginBottom: 6 },
-  archivoRef: { color: "rgba(255,255,255,0.6)", fontSize: 13, marginBottom: 2 },
-  archivoAcciones: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  botonDescarga: { flex: 1, backgroundColor: "rgba(255,255,255,0.05)", paddingVertical: 12, borderRadius: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", alignItems: "center", marginRight: 10 },
-  textoDescarga: { color: "#ffffff", fontSize: 13, fontWeight: "bold" },
-  
-  // Alertas y Bloqueos
-  alertaCaja: { backgroundColor: "rgba(200,178,119,0.1)", padding: 24, borderRadius: 12, borderColor: "rgba(200,178,119,0.3)", borderWidth: 1, maxWidth: "90%", alignItems: "center" },
   bloqueoContenedor: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#121212", padding: 20 },
-  bloqueoTarjeta: { backgroundColor: "#1e1e1f", borderRadius: 16, padding: 30, alignItems: "center", borderColor: "rgba(200,178,119,0.2)", borderWidth: 1, width: "100%" },
+  bloqueoTarjeta: { backgroundColor: "#1e1e1f", borderRadius: 24, padding: 32, alignItems: "center", borderColor: "rgba(200,178,119,0.3)", borderWidth: 1, width: "100%" },
   bloqueoIcono: { fontSize: 48, marginBottom: 16 },
-  bloqueoTitulo: { color: "#ff4b4b", fontSize: 20, fontWeight: "bold", marginBottom: 12, textAlign: "center" },
-  botonSecundarioBorde: { paddingVertical: 12, width: "100%", alignItems: "center", borderWidth: 1, borderColor: "#8e8e93", borderRadius: 8, marginTop: 10 },
-  textoSecundarioBorde: { color: "#ffffff", fontWeight: "600" },
-  centroTotal: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#121212" },
+  bloqueoTitulo: { color: "#ffffff", fontSize: 22, fontWeight: "bold", marginBottom: 16, textAlign: "center" },
+  bloqueoTexto: { color: "#a4a4aa", textAlign: "center", marginBottom: 24, lineHeight: 22, fontSize: 14 },
+  
+  avisoVacio: { alignItems: "center", paddingVertical: 32, paddingHorizontal: 20, backgroundColor: "rgba(200, 178, 119, 0.03)", borderRadius: 16, borderWidth: 1, borderColor: "rgba(200, 178, 119, 0.1)", borderStyle: "dashed" },
+  iconoPlaceholder: { fontSize: 40, marginBottom: 12, opacity: 0.8 },
+  mensajeVacio: { color: "#ffffff", fontSize: 16, fontWeight: "bold", marginBottom: 6 },
+  sugerenciaVacio: { color: "#8e8e93", fontSize: 13, textAlign: 'center' },
 
+  // ==========================================
+  // 8. BUSCADOR
+  // ==========================================
+  buscadorContenedor: { flexDirection: "row", alignItems: "center", backgroundColor: "#1e1e1f", borderRadius: 14, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 20, borderWidth: 1, borderColor: "rgba(200, 178, 119, 0.15)" },
+  buscadorIcono: { fontSize: 18, marginRight: 10, opacity: 0.7 },
+  buscadorInput: { flex: 1, color: "#ffffff", fontSize: 15, padding: 0 }
 });

@@ -37,7 +37,7 @@ export default function App() {
           <Stack.Screen name="Movimientos" component={MovimientosScreen} options={{ title: "Movimientos" }} />
           <Stack.Screen name="Archivos" component={ArchivosScreen} options={{ title: "Archivos" }} />
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="General" component={GeneralScreen} options={{ title: "Resumen Financiero" }} />
+          <Stack.Screen name="General" component={GeneralScreen} options={{ headerShown: false }} />
          
         
         </Stack.Navigator>

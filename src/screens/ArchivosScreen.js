@@ -6,8 +6,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from "@react-navigation/native";
 import { globalStyles } from "../styles/styles"; // <-- IMPORTACIÓN GLOBAL
 
-const API_BASE_URL = "http://192.168.100.3:45455/api";
-const SERVER_HOST = "http://192.168.100.3:45455/api";
+const API_BASE_URL = "http://192.168.1.126:45457/api";
+const SERVER_HOST = "http://192.168.1.126:45457/api";
 
 export default function ArchivosScreen() {
   const navigation = useNavigation();
@@ -74,7 +74,7 @@ export default function ArchivosScreen() {
 
       const resUsuario = await fetch(`${API_BASE_URL}/Usuarios/ByToken`, { headers: { "Authorization": `Bearer ${token}` } });
       if (resUsuario.status === 401) return forzarCierreSesion("Sesión expirada.");
-      
+
       const datosUsuario = await resUsuario.json();
       setUsuario(datosUsuario);
 
@@ -169,7 +169,7 @@ export default function ArchivosScreen() {
           try {
             const response = await fetch(`${API_BASE_URL}/${endpoint}/Eliminar/${idDocumento}`, { method: "DELETE", headers: { "Authorization": `Bearer ${token}` } });
             if (!response.ok) throw new Error("Error en el servidor al eliminar.");
-            
+
             if (tipo === "ingreso") setDocumentosIngreso((prev) => prev.filter(doc => doc.IdDocumentoIngreso != idDocumento));
             else setDocumentosGasto((prev) => prev.filter(doc => doc.IdDocumentoGasto != idDocumento));
             Alert.alert("Éxito", "Comprobante eliminado con éxito.");
@@ -190,9 +190,9 @@ export default function ArchivosScreen() {
 
   const renderTarjetaDocumento = (doc, tipo) => {
     const isIngreso = tipo === "ingreso";
-    const refHistorial = isIngreso 
-        ? (historialIngresos.find(h => h.IdHistorialIngreso === doc.IdIngreso)?.Descripcion || "No encontrada")
-        : (historialGastos.find(h => h.IdHistorialGasto === doc.IdGasto)?.Descripcion || "No encontrada");
+    const refHistorial = isIngreso
+      ? (historialIngresos.find(h => h.IdHistorialIngreso === doc.IdIngreso)?.Descripcion || "No encontrada")
+      : (historialGastos.find(h => h.IdHistorialGasto === doc.IdGasto)?.Descripcion || "No encontrada");
 
     return (
       <View key={isIngreso ? doc.IdDocumentoIngreso : doc.IdDocumentoGasto} style={globalStyles.tarjetaArchivo}>
@@ -235,14 +235,29 @@ export default function ArchivosScreen() {
     return (
       <View style={globalStyles.bloqueoContenedor}>
         <View style={globalStyles.bloqueoTarjeta}>
-          <Text style={globalStyles.bloqueoIcono}>🔒</Text>
-          <Text style={globalStyles.bloqueoTitulo}>Apartado No Habilitado</Text>
-          <Text style={globalStyles.bloqueoTexto}>Tu plan actual no incluye el gestor de comprobantes. Mejorá tu suscripción para desbloquearlo.</Text>
-          <TouchableOpacity style={globalStyles.botonModalPrimario} onPress={() => navigation.navigate("planes")}>
-            <Text style={globalStyles.loginBtnText}>Mejorar mi Plan 🚀</Text>
+          {/* Considera usar un icono real en lugar de un emoji */}
+          <View style={{ marginBottom: 20, opacity: 0.8 }}>
+            <Text style={{ fontSize: 50 }}>🔒</Text>
+          </View>
+
+          <Text style={globalStyles.bloqueoTitulo}>Apartado restringido</Text>
+          <Text style={globalStyles.bloqueoTexto}>
+            Para acceder a esta función, necesitas contar con nuestro plan Premium.
+            ¡Desbloquea todo el potencial de FinanzARC ahora!
+          </Text>
+
+          <TouchableOpacity
+            style={globalStyles.botonMejorarPlan}
+            onPress={() => navigation.navigate("planes")}
+          >
+            <Text style={[globalStyles.loginBtnText, { fontSize: 16 }]}>Mejorar mi Plan 🚀</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={globalStyles.botonSecundarioBorde} onPress={() => navigation.goBack()}>
-            <Text style={globalStyles.textoSecundarioBorde}>Volver al Inicio</Text>
+
+          <TouchableOpacity
+            style={globalStyles.botonVolver}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={globalStyles.textoVolver}>Volver al Inicio</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -272,21 +287,21 @@ export default function ArchivosScreen() {
         </View>
 
         <View style={globalStyles.filtrosRow}>
-            <View style={globalStyles.pickerWrapperFiltro}>
-                <Picker selectedValue={mesFiltro} style={globalStyles.pickerNativo} dropdownIconColor="#c8b277" onValueChange={setMesFiltro}>
-                    <Picker.Item label="Todos los meses" value="" />
-                    {Array.from({ length: 12 }, (_, i) => (
-                    <Picker.Item key={i + 1} label={new Date(0, i).toLocaleString('es-ES', { month: 'long' })} value={(i + 1).toString()} />
-                    ))}
-                </Picker>
-            </View>
-            <View style={globalStyles.pickerWrapperFiltro}>
-                <Picker selectedValue={anioFiltro} style={globalStyles.pickerNativo} dropdownIconColor="#c8b277" onValueChange={setAnioFiltro}>
-                    <Picker.Item label="2024" value="2024" />
-                    <Picker.Item label="2025" value="2025" />
-                    <Picker.Item label="2026" value="2026" />
-                </Picker>
-            </View>
+          <View style={globalStyles.pickerWrapperFiltro}>
+            <Picker selectedValue={mesFiltro} style={globalStyles.pickerNativo} dropdownIconColor="#c8b277" onValueChange={setMesFiltro}>
+              <Picker.Item label="Todos los meses" value="" />
+              {Array.from({ length: 12 }, (_, i) => (
+                <Picker.Item key={i + 1} label={new Date(0, i).toLocaleString('es-ES', { month: 'long' })} value={(i + 1).toString()} />
+              ))}
+            </Picker>
+          </View>
+          <View style={globalStyles.pickerWrapperFiltro}>
+            <Picker selectedValue={anioFiltro} style={globalStyles.pickerNativo} dropdownIconColor="#c8b277" onValueChange={setAnioFiltro}>
+              <Picker.Item label="2024" value="2024" />
+              <Picker.Item label="2025" value="2025" />
+              <Picker.Item label="2026" value="2026" />
+            </Picker>
+          </View>
         </View>
 
         <TouchableOpacity style={globalStyles.botonArchivar} onPress={() => abrirModalCarga("ingreso")}>
@@ -294,26 +309,26 @@ export default function ArchivosScreen() {
         </TouchableOpacity>
 
         <View style={[globalStyles.tabsContenedor, { marginTop: 24 }]}>
-            <TouchableOpacity style={[globalStyles.tabBoton, panelActivo === "ingreso" && globalStyles.tabBotonActivo]} onPress={() => setPanelActivo("ingreso")}>
-                <Text style={[globalStyles.tabTexto, panelActivo === "ingreso" && globalStyles.tabTextoActivo]}>Ingresos</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[globalStyles.tabBoton, panelActivo === "gasto" && globalStyles.tabBotonActivo]} onPress={() => setPanelActivo("gasto")}>
-                <Text style={[globalStyles.tabTexto, panelActivo === "gasto" && globalStyles.tabTextoActivo]}>Gastos</Text>
-            </TouchableOpacity>
+          <TouchableOpacity style={[globalStyles.tabBoton, panelActivo === "ingreso" && globalStyles.tabBotonActivo]} onPress={() => setPanelActivo("ingreso")}>
+            <Text style={[globalStyles.tabTexto, panelActivo === "ingreso" && globalStyles.tabTextoActivo]}>Ingresos</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[globalStyles.tabBoton, panelActivo === "gasto" && globalStyles.tabBotonActivo]} onPress={() => setPanelActivo("gasto")}>
+            <Text style={[globalStyles.tabTexto, panelActivo === "gasto" && globalStyles.tabTextoActivo]}>Gastos</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={{ flex: 1 }}>
-            {panelActivo === "ingreso" ? (
-                ingresosFiltrados.length === 0 ? (
-                    <View style={globalStyles.avisoVacio}><Text style={globalStyles.mensajeVacio}>No hay ingresos cargados.</Text></View>
-                ) : ( ingresosFiltrados.map(doc => renderTarjetaDocumento(doc, "ingreso")) )
-            ) : (
-                gastosFiltrados.length === 0 ? (
-                    <View style={globalStyles.avisoVacio}><Text style={globalStyles.mensajeVacio}>No hay gastos cargados.</Text></View>
-                ) : ( gastosFiltrados.map(doc => renderTarjetaDocumento(doc, "gasto")) )
-            )}
+          {panelActivo === "ingreso" ? (
+            ingresosFiltrados.length === 0 ? (
+              <View style={globalStyles.avisoVacio}><Text style={globalStyles.mensajeVacio}>No hay ingresos cargados.</Text></View>
+            ) : (ingresosFiltrados.map(doc => renderTarjetaDocumento(doc, "ingreso")))
+          ) : (
+            gastosFiltrados.length === 0 ? (
+              <View style={globalStyles.avisoVacio}><Text style={globalStyles.mensajeVacio}>No hay gastos cargados.</Text></View>
+            ) : (gastosFiltrados.map(doc => renderTarjetaDocumento(doc, "gasto")))
+          )}
         </View>
-        <View style={{height: 40}} />
+        <View style={{ height: 40 }} />
       </ScrollView>
 
       {/* MODAL DE CARGA (Con diseño Premium global) */}
@@ -348,8 +363,8 @@ export default function ArchivosScreen() {
             <View style={globalStyles.formularioGrupo}>
               <Text style={globalStyles.labelForm}>Documento (PDF o Imagen)</Text>
               <TouchableOpacity style={[globalStyles.inputForm, { borderStyle: "dashed", borderColor: "rgba(200,178,119,0.5)", alignItems: "center", paddingVertical: 16 }]} onPress={seleccionarArchivo}>
-                <Text style={{color: archivoSeleccionado ? "#fff" : "#8e8e93", fontWeight: archivoSeleccionado ? "bold" : "normal"}}>
-                    {archivoSeleccionado ? archivoSeleccionado.name : "Toque para seleccionar..."}
+                <Text style={{ color: archivoSeleccionado ? "#fff" : "#8e8e93", fontWeight: archivoSeleccionado ? "bold" : "normal" }}>
+                  {archivoSeleccionado ? archivoSeleccionado.name : "Toque para seleccionar..."}
                 </Text>
               </TouchableOpacity>
             </View>
