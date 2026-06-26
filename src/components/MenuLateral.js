@@ -2,7 +2,6 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
-
 const MenuLateral = ({ onClose, onNavigate }) => {
   const navigation = useNavigation();
 
@@ -15,22 +14,31 @@ const MenuLateral = ({ onClose, onNavigate }) => {
   };
 
   return (
-    
     <View style={styles.menuContainer}>
       <Text style={styles.titulo}>Menú Principal</Text>
-      <TouchableOpacity style={styles.item} onPress={() => navigation.navigate("Movimientos")}>
+      
+      {/* 1. Historial General */}
+      <TouchableOpacity style={styles.item} onPress={() => { navigation.navigate("Movimientos"); onClose(); }}>
         <Text style={styles.icono}>📊</Text>
         <Text style={styles.texto}>Historial General</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.item} onPress={() => navigation.navigate("Archivos")}>
+      {/* 2. Archivos */}
+      <TouchableOpacity style={styles.item} onPress={() => { navigation.navigate("Archivos"); onClose(); }}>
         <Text style={styles.icono}>📁</Text>
         <Text style={styles.texto}>Archivos</Text>
       </TouchableOpacity>
 
+      {/* 3. Membresías / Planes (Ícono Agregado) */}
+      <TouchableOpacity style={styles.item} onPress={() => { navigation.navigate("Planes"); onClose(); }}>
+        <Text style={styles.icono}>👑</Text>
+        <Text style={styles.texto}>Membresías</Text>
+      </TouchableOpacity>
+
       <View style={styles.separador} />
 
-      <TouchableOpacity style={styles.itemCerrar} onPress={() => {cerrarSesion(); onClose();}}>
+      {/* 4. Cerrar Sesión */}
+      <TouchableOpacity style={styles.itemCerrar} onPress={() => { cerrarSesion(); onClose(); }}>
         <Text style={styles.textoCerrar}>Cerrar Sesión</Text>
       </TouchableOpacity>
     </View>
@@ -39,13 +47,13 @@ const MenuLateral = ({ onClose, onNavigate }) => {
 
 const styles = StyleSheet.create({
   menuContainer: {
-    width: '80%', // <-- AGREGA ESTO: No uses flex: 1 solo
+    width: '80%', 
     height: '100%',
     backgroundColor: '#121212', // Fondo oscuro
     paddingTop: 60,
     paddingHorizontal: 25,
     alignItems: 'flex-start',
-    justifyContent: 'flex-start'
+    justify:'flex-start'
   },
   titulo: {
     color: '#c8b277',

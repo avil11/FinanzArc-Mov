@@ -7,7 +7,7 @@ import { useNavigation } from "@react-navigation/native";
 import { globalStyles } from "../styles/styles"; // <-- IMPORTACIÓN GLOBAL
 
 const API_BASE_URL = "http://192.168.1.126:45455/api";
-const SERVER_HOST = "http://192.168.1.126:45455/api";
+const SERVER_HOST = "http://192.168.1.126:45455";
 
 export default function ArchivosScreen() {
   const navigation = useNavigation();
@@ -109,9 +109,19 @@ export default function ArchivosScreen() {
 
   const filtrarDocumentos = (lista) => {
     return lista.filter((doc) => {
-      const fecha = new Date(doc.FechaCarga);
-      const coincideMes = mesFiltro === "" || (fecha.getMonth() + 1).toString() === mesFiltro;
-      const coincideAnio = anioFiltro === "" || fecha.getFullYear().toString() === anioFiltro;
+      if (!doc.FechaCarga) return false;
+
+      // 1. Reemplazamos el espacio por la 'T' para evitar 'Invalid Date' en móviles
+      const fechaSegura = doc.FechaCarga.replace(" ", "T");
+      const fecha = new Date(fechaSegura);
+      
+      // 2. Usamos métodos locales
+      const anioDoc = fecha.getFullYear().toString();
+      const mesDoc = (fecha.getMonth() + 1).toString();
+
+      const coincideMes = mesFiltro === "" || mesDoc === mesFiltro;
+      const coincideAnio = anioFiltro === "" || anioDoc === anioFiltro;
+
       return coincideMes && coincideAnio;
     });
   };
@@ -211,11 +221,11 @@ export default function ArchivosScreen() {
           <Text style={globalStyles.movimientoFecha}>{new Date(doc.FechaCarga).toLocaleDateString()}</Text>
         </View>
         <View style={globalStyles.archivoAcciones}>
-          <TouchableOpacity style={globalStyles.botonDescarga} onPress={() => Linking.openURL(`${SERVER_HOST}${doc.RutaArchivo}`)}>
+          <TouchableOpacity style={globalStyles.botonDescargaArchivos} onPress={() => Linking.openURL(`${SERVER_HOST}${doc.RutaArchivo}`)}>
             <Text style={globalStyles.textoDescarga}>Visualizar</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={globalStyles.botonModalEliminar} onPress={() => eliminarDocumento(isIngreso ? doc.IdDocumentoIngreso : doc.IdDocumentoGasto, tipo)}>
-            <Text style={{ color: "#fff", fontWeight: "bold", fontSize: 13 }}>Eliminar</Text>
+          <TouchableOpacity style={globalStyles.botonModalEliminarArchivos} onPress={() => eliminarDocumento(isIngreso ? doc.IdDocumentoIngreso : doc.IdDocumentoGasto, tipo)}>
+            <Text style={globalStyles.textoEliminar}>Eliminar</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -235,7 +245,6 @@ export default function ArchivosScreen() {
     return (
       <View style={globalStyles.bloqueoContenedor}>
         <View style={globalStyles.bloqueoTarjeta}>
-          {/* Considera usar un icono real en lugar de un emoji */}
           <View style={{ marginBottom: 20, opacity: 0.8 }}>
             <Text style={{ fontSize: 50 }}>🔒</Text>
           </View>
@@ -288,22 +297,45 @@ export default function ArchivosScreen() {
 
         <View style={globalStyles.filtrosRow}>
           <View style={globalStyles.pickerWrapperFiltro}>
-            <Picker selectedValue={mesFiltro} style={globalStyles.pickerNativo} dropdownIconColor="#c8b277" onValueChange={setMesFiltro}>
+            <Picker selectedValue={mesFiltro} style={globalStyles.pickerNativo} dropdownIconColor="#c8b277" onValueChange={setMesFiltro} itemStyle={{ color: '#c8b277', fontWeight: '500' }}>
               <Picker.Item label="Todos los meses" value="" />
-              {Array.from({ length: 12 }, (_, i) => (
-                <Picker.Item key={i + 1} label={new Date(0, i).toLocaleString('es-ES', { month: 'long' })} value={(i + 1).toString()} />
-              ))}
+              {Array.from({ length: 12 }, (_, i) => {
+                const fechaMes = new Date(2024, i, 1);
+                const nombreMes = fechaMes.toLocaleString('es-ES', { month: 'long' });
+                
+                return (
+                  <Picker.Item 
+                    key={i + 1} 
+                    label={nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1)} 
+                    value={(i + 1).toString()} 
+                  />
+                );
+              })}
             </Picker>
           </View>
           <View style={globalStyles.pickerWrapperFiltro}>
-            <Picker selectedValue={anioFiltro} style={globalStyles.pickerNativo} dropdownIconColor="#c8b277" onValueChange={setAnioFiltro}>
+            <Picker
+              selectedValue={anioFiltro}
+              style={globalStyles.pickerNativo}
+              dropdownIconColor="#c8b277"
+              onValueChange={setAnioFiltro}
+              itemStyle={{ color: '#c8b277' }}
+            >
               <Picker.Item label="2024" value="2024" />
               <Picker.Item label="2025" value="2025" />
               <Picker.Item label="2026" value="2026" />
+              <Picker.Item label="2027" value="2027" />
+              <Picker.Item label="2028" value="2028" />
+              <Picker.Item label="2029" value="2029" />
+              <Picker.Item label="2030" value="2030" />
+              <Picker.Item label="2031" value="2031" />
+              <Picker.Item label="2032" value="2032" />
+              <Picker.Item label="2033" value="2033" />
+              <Picker.Item label="2034" value="2034" />
+              <Picker.Item label="2035" value="2035" />
             </Picker>
           </View>
         </View>
-
         <TouchableOpacity style={globalStyles.botonArchivar} onPress={() => abrirModalCarga("ingreso")}>
           <Text style={globalStyles.botonArchivarTexto}>+ Cargar Nuevo Comprobante</Text>
         </TouchableOpacity>
@@ -331,12 +363,12 @@ export default function ArchivosScreen() {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* MODAL DE CARGA (Con diseño Premium global) */}
+      {/* MODAL DE CARGA */}
       <Modal visible={modalAbierto} animationType="slide" transparent={true} onRequestClose={() => setModalAbierto(false)}>
         <View style={globalStyles.capaModal}>
           <View style={globalStyles.contenidoModal}>
-            <Text style={[globalStyles.tituloTarjeta, { color: "#c8b277" }]}>Vincular Archivo</Text>
 
+            <Text style={[globalStyles.tituloTarjeta, { color: "#c8b277" }]}>Vincular Archivo</Text>
             <View style={globalStyles.formularioGrupo}>
               <Text style={globalStyles.labelForm}>Clasificación</Text>
               <View style={globalStyles.inputSelectContainer}>
@@ -346,7 +378,6 @@ export default function ArchivosScreen() {
                 </Picker>
               </View>
             </View>
-
             <View style={globalStyles.formularioGrupo}>
               <Text style={globalStyles.labelForm}>Movimiento Registrado</Text>
               <View style={globalStyles.inputSelectContainer}>
@@ -359,7 +390,6 @@ export default function ArchivosScreen() {
                 </Picker>
               </View>
             </View>
-
             <View style={globalStyles.formularioGrupo}>
               <Text style={globalStyles.labelForm}>Documento (PDF o Imagen)</Text>
               <TouchableOpacity style={[globalStyles.inputForm, { borderStyle: "dashed", borderColor: "rgba(200,178,119,0.5)", alignItems: "center", paddingVertical: 16 }]} onPress={seleccionarArchivo}>
@@ -369,12 +399,25 @@ export default function ArchivosScreen() {
               </TouchableOpacity>
             </View>
 
-            <View style={globalStyles.formularioAcciones}>
-              <TouchableOpacity style={globalStyles.botonModalSecundario} onPress={() => setModalAbierto(false)} disabled={subiendo}>
-                <Text style={{ color: "#fff" }}>Cancelar</Text>
+            <View style={globalStyles.formularioAccionesVincularArchivo}>
+              <TouchableOpacity
+                style={globalStyles.botonModalCancelarArchivo}
+                onPress={() => setModalAbierto(false)}
+                disabled={subiendo}
+              >
+                <Text style={globalStyles.textoBotonCancelar}>Cancelar</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={globalStyles.botonModalPrimario} onPress={ejecutarSubidaArchivo} disabled={subiendo}>
-                {subiendo ? <ActivityIndicator color="#121212" size="small" /> : <Text style={{ color: "#121212", fontWeight: "bold" }}>Subir</Text>}
+
+              <TouchableOpacity
+                style={globalStyles.botonModalSubirArchivo}
+                onPress={ejecutarSubidaArchivo}
+                disabled={subiendo}
+              >
+                {subiendo ? (
+                  <ActivityIndicator color="#121212" size="small" />
+                ) : (
+                  <Text style={globalStyles.textoBotonSubir}>Subir</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
