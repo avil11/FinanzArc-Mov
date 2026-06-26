@@ -440,7 +440,6 @@ const GastoIngreso = () => {
     let anguloAcumulado = 0;
 
     return (
-
       <View style={globalStyles.contenedorGraficoPie}>
         <Svg width="130" height="130" viewBox="0 0 110 110">
           <G transformOrigin>
