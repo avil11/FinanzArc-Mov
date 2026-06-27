@@ -113,9 +113,19 @@ export default function ArchivosScreen() {
 
   const filtrarDocumentos = (lista) => {
     return lista.filter((doc) => {
-      const fecha = new Date(doc.FechaCarga);
-      const coincideMes = mesFiltro === "" || (fecha.getMonth() + 1).toString() === mesFiltro;
-      const coincideAnio = anioFiltro === "" || fecha.getFullYear().toString() === anioFiltro;
+      if (!doc.FechaCarga) return false;
+
+      // 1. Reemplazamos el espacio por la 'T' para evitar 'Invalid Date' en móviles
+      const fechaSegura = doc.FechaCarga.replace(" ", "T");
+      const fecha = new Date(fechaSegura);
+      
+      // 2. Usamos métodos locales
+      const anioDoc = fecha.getFullYear().toString();
+      const mesDoc = (fecha.getMonth() + 1).toString();
+
+      const coincideMes = mesFiltro === "" || mesDoc === mesFiltro;
+      const coincideAnio = anioFiltro === "" || anioDoc === anioFiltro;
+
       return coincideMes && coincideAnio;
     });
   };
@@ -126,8 +136,9 @@ export default function ArchivosScreen() {
   const seleccionarArchivo = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({ type: "*/*", copyToCacheDirectory: true });
-      if (result.canceled === false && result.assets.length > 0) {
-        setArchivoSeleccionado(result.assets[0]);
+      // expo-document-picker returns { type: 'success'|'cancel', name, size, uri, mimeType }
+      if (result.type === 'success') {
+        setArchivoSeleccionado(result);
       }
     } catch (err) { Alert.alert("Error", "No se pudo seleccionar el archivo"); }
   };
@@ -147,7 +158,7 @@ export default function ArchivosScreen() {
     try {
       const respuesta = await fetch(urlUpload, {
         method: "POST",
-        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "multipart/form-data" },
+        headers: { "Authorization": `Bearer ${token}` },
         body: formData
       });
       if (!respuesta.ok) throw new Error("Error al subir el archivo.");
@@ -219,13 +230,17 @@ export default function ArchivosScreen() {
             <Text style={styles.cardDate}>{new Date(doc.FechaCarga).toLocaleDateString()}</Text>
           </View>
         </View>
-
-        <View style={styles.cardActions}>
-          <TouchableOpacity activeOpacity={0.7} style={styles.btnSecondary} onPress={() => Linking.openURL(`${SERVER_HOST}${doc.RutaArchivo}`)}>
-            <Text style={styles.btnSecondaryText}>Visualizar</Text>
+        <View style={globalStyles.archivoDetalles}>
+          <Text style={globalStyles.archivoTitulo} numberOfLines={1}>{doc.NombreArchivoOriginal}</Text>
+          <Text style={globalStyles.archivoRef}>Ref: {refHistorial}</Text>
+          <Text style={globalStyles.movimientoFecha}>{new Date(doc.FechaCarga).toLocaleDateString()}</Text>
+        </View>
+        <View style={globalStyles.archivoAcciones}>
+          <TouchableOpacity style={globalStyles.botonDescargaArchivos} onPress={() => Linking.openURL(`${SERVER_HOST}${doc.RutaArchivo}`)}>
+            <Text style={globalStyles.textoDescarga}>Visualizar</Text>
           </TouchableOpacity>
-          <TouchableOpacity activeOpacity={0.7} style={styles.btnDanger} onPress={() => eliminarDocumento(isIngreso ? doc.IdDocumentoIngreso : doc.IdDocumentoGasto, tipo)}>
-            <Text style={styles.btnDangerText}>Eliminar</Text>
+          <TouchableOpacity style={globalStyles.botonModalEliminarArchivos} onPress={() => eliminarDocumento(isIngreso ? doc.IdDocumentoIngreso : doc.IdDocumentoGasto, tipo)}>
+            <Text style={globalStyles.textoEliminar}>Eliminar</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -243,10 +258,10 @@ export default function ArchivosScreen() {
 
   if (!rolHabilitado) {
     return (
-      <View style={styles.centerContainer}>
-        <View style={styles.premiumCard}>
-          <View style={styles.iconContainer}>
-            <Text style={styles.lockIcon}>🔒</Text>
+      <View style={globalStyles.bloqueoContenedor}>
+        <View style={globalStyles.bloqueoTarjeta}>
+          <View style={{ marginBottom: 20, opacity: 0.8 }}>
+            <Text style={{ fontSize: 50 }}>🔒</Text>
           </View>
           <Text style={styles.premiumTitle}>Apartado restringido</Text>
           <Text style={styles.premiumText}>
@@ -287,26 +302,49 @@ export default function ArchivosScreen() {
           <Text style={styles.headerSubtitle}>Gestor de tickets y facturas digitalizados.</Text>
         </View>
 
-        <View style={styles.filtersRow}>
-          <View style={styles.pickerContainer}>
-            <Picker selectedValue={mesFiltro} style={styles.picker} dropdownIconColor="#c8b277" onValueChange={setMesFiltro}>
-              <Picker.Item label="Meses (Todos)" value="" />
-              {Array.from({ length: 12 }, (_, i) => (
-                <Picker.Item key={i + 1} label={new Date(0, i).toLocaleString('es-ES', { month: 'long' })} value={(i + 1).toString()} />
-              ))}
+        <View style={globalStyles.filtrosRow}>
+          <View style={globalStyles.pickerWrapperFiltro}>
+            <Picker selectedValue={mesFiltro} style={globalStyles.pickerNativo} dropdownIconColor="#c8b277" onValueChange={setMesFiltro} itemStyle={{ color: '#c8b277', fontWeight: '500' }}>
+              <Picker.Item label="Todos los meses" value="" />
+              {Array.from({ length: 12 }, (_, i) => {
+                const fechaMes = new Date(2024, i, 1);
+                const nombreMes = fechaMes.toLocaleString('es-ES', { month: 'long' });
+                
+                return (
+                  <Picker.Item 
+                    key={i + 1} 
+                    label={nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1)} 
+                    value={(i + 1).toString()} 
+                  />
+                );
+              })}
             </Picker>
           </View>
-          <View style={styles.pickerContainer}>
-            <Picker selectedValue={anioFiltro} style={styles.picker} dropdownIconColor="#c8b277" onValueChange={setAnioFiltro}>
+          <View style={globalStyles.pickerWrapperFiltro}>
+            <Picker
+              selectedValue={anioFiltro}
+              style={globalStyles.pickerNativo}
+              dropdownIconColor="#c8b277"
+              onValueChange={setAnioFiltro}
+              itemStyle={{ color: '#c8b277' }}
+            >
               <Picker.Item label="2024" value="2024" />
               <Picker.Item label="2025" value="2025" />
               <Picker.Item label="2026" value="2026" />
+              <Picker.Item label="2027" value="2027" />
+              <Picker.Item label="2028" value="2028" />
+              <Picker.Item label="2029" value="2029" />
+              <Picker.Item label="2030" value="2030" />
+              <Picker.Item label="2031" value="2031" />
+              <Picker.Item label="2032" value="2032" />
+              <Picker.Item label="2033" value="2033" />
+              <Picker.Item label="2034" value="2034" />
+              <Picker.Item label="2035" value="2035" />
             </Picker>
           </View>
         </View>
-
-        <TouchableOpacity activeOpacity={0.8} style={styles.btnPrimary} onPress={() => abrirModalCarga("ingreso")}>
-          <Text style={styles.btnPrimaryText}>+ Cargar Nuevo Comprobante</Text>
+        <TouchableOpacity style={globalStyles.botonArchivar} onPress={() => abrirModalCarga("ingreso")}>
+          <Text style={globalStyles.botonArchivarTexto}>+ Cargar Nuevo Comprobante</Text>
         </TouchableOpacity>
 
         <View style={styles.tabsContainer}>
@@ -341,26 +379,25 @@ export default function ArchivosScreen() {
       </ScrollView>
 
       {/* MODAL DE CARGA */}
-      <Modal visible={modalAbierto} animationType="fade" transparent={true} onRequestClose={() => setModalAbierto(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Vincular Archivo</Text>
+      <Modal visible={modalAbierto} animationType="slide" transparent={true} onRequestClose={() => setModalAbierto(false)}>
+        <View style={globalStyles.capaModal}>
+          <View style={globalStyles.contenidoModal}>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Clasificación</Text>
-              <View style={styles.pickerContainer}>
-                <Picker selectedValue={tipoSubida} style={styles.picker} dropdownIconColor="#c8b277" onValueChange={(val) => { setTipoSubida(val); setIdTransaccion(""); }}>
+            <Text style={[globalStyles.tituloTarjeta, { color: "#c8b277" }]}>Vincular Archivo</Text>
+            <View style={globalStyles.formularioGrupo}>
+              <Text style={globalStyles.labelForm}>Clasificación</Text>
+              <View style={globalStyles.inputSelectContainer}>
+                <Picker selectedValue={tipoSubida} style={globalStyles.pickerNativo} dropdownIconColor="#c8b277" onValueChange={(val) => { setTipoSubida(val); setIdTransaccion(""); }}>
                   <Picker.Item label="Vincular a un Ingreso" value="ingreso" />
                   <Picker.Item label="Vincular a un Gasto" value="gasto" />
                 </Picker>
               </View>
             </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Movimiento Registrado</Text>
-              <View style={styles.pickerContainer}>
-                <Picker selectedValue={idTransaccion} style={styles.picker} dropdownIconColor="#c8b277" onValueChange={setIdTransaccion}>
-                  <Picker.Item label="-- Seleccione una transacción --" value="" />
+            <View style={globalStyles.formularioGrupo}>
+              <Text style={globalStyles.labelForm}>Movimiento Registrado</Text>
+              <View style={globalStyles.inputSelectContainer}>
+                <Picker selectedValue={idTransaccion} style={globalStyles.pickerNativo} dropdownIconColor="#c8b277" onValueChange={setIdTransaccion}>
+                  <Picker.Item label="-- Seleccione --" value="" />
                   {(tipoSubida === "ingreso" ? historialIngresos : historialGastos).map((item) => {
                     const id = tipoSubida === "ingreso" ? item.IdHistorialIngreso : item.IdHistorialGasto;
                     return <Picker.Item key={id} label={`${item.Descripcion} - $${item.Monto}`} value={id} />;
@@ -368,22 +405,34 @@ export default function ArchivosScreen() {
                 </Picker>
               </View>
             </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Documento (PDF o Imagen)</Text>
-              <TouchableOpacity activeOpacity={0.7} style={styles.fileDropZone} onPress={seleccionarArchivo}>
-                <Text style={archivoSeleccionado ? styles.fileDropTextActive : styles.fileDropText}>
-                  {archivoSeleccionado ? `📄 ${archivoSeleccionado.name}` : "📁 Toque para seleccionar un archivo"}
+            <View style={globalStyles.formularioGrupo}>
+              <Text style={globalStyles.labelForm}>Documento (PDF o Imagen)</Text>
+              <TouchableOpacity style={[globalStyles.inputForm, { borderStyle: "dashed", borderColor: "rgba(200,178,119,0.5)", alignItems: "center", paddingVertical: 16 }]} onPress={seleccionarArchivo}>
+                <Text style={{ color: archivoSeleccionado ? "#fff" : "#8e8e93", fontWeight: archivoSeleccionado ? "bold" : "normal" }}>
+                  {archivoSeleccionado ? archivoSeleccionado.name : "Toque para seleccionar..."}
                 </Text>
               </TouchableOpacity>
             </View>
 
-            <View style={styles.modalActions}>
-              <TouchableOpacity activeOpacity={0.7} style={styles.btnModalCancel} onPress={() => setModalAbierto(false)} disabled={subiendo}>
-                <Text style={styles.btnModalCancelText}>Cancelar</Text>
+            <View style={globalStyles.formularioAccionesVincularArchivo}>
+              <TouchableOpacity
+                style={globalStyles.botonModalCancelarArchivo}
+                onPress={() => setModalAbierto(false)}
+                disabled={subiendo}
+              >
+                <Text style={globalStyles.textoBotonCancelar}>Cancelar</Text>
               </TouchableOpacity>
-              <TouchableOpacity activeOpacity={0.7} style={styles.btnModalSubmit} onPress={ejecutarSubidaArchivo} disabled={subiendo}>
-                {subiendo ? <ActivityIndicator color="#121212" size="small" /> : <Text style={styles.btnModalSubmitText}>Subir Archivo</Text>}
+
+              <TouchableOpacity
+                style={globalStyles.botonModalSubirArchivo}
+                onPress={ejecutarSubidaArchivo}
+                disabled={subiendo}
+              >
+                {subiendo ? (
+                  <ActivityIndicator color="#121212" size="small" />
+                ) : (
+                  <Text style={globalStyles.textoBotonSubir}>Subir</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>

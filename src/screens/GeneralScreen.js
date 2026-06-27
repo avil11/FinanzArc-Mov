@@ -440,7 +440,6 @@ const GastoIngreso = () => {
     let anguloAcumulado = 0;
 
     return (
-
       <View style={globalStyles.contenedorGraficoPie}>
         <Svg width="130" height="130" viewBox="0 0 110 110">
           <G transformOrigin>
@@ -468,7 +467,7 @@ const GastoIngreso = () => {
           </G>
           <SvgText x="55" y="52" textAnchor="middle" fill="#ffffff" fontSize="9" fontWeight="600">Total</SvgText>
           <SvgText x="55" y="66" textAnchor="middle" fill="#c8b277" fontSize="10" fontWeight="bold">
-            ${total.toLocaleString("es-AR", { maximumFractionDigits: 0 })}
+            {total.toLocaleString("es-AR", { maximumFractionDigits: 0 })}
           </SvgText>
         </Svg>
       </View>
@@ -500,7 +499,16 @@ const GastoIngreso = () => {
               onClose={() => setMenuVisible(false)}
               onNavigate={(ruta) => {
                 setMenuVisible(false);
-                navigation.navigate("Archivos"); // <--- DESCOMENTA ESTO PARA QUE FUNCIONE
+                navigation.navigate("Archivos");
+              }}
+            />
+          </View>
+          <View style={{ position: 'absolute', height: '100%', width: '80%' }}>
+            <MenuLateral
+              onClose={() => setMenuVisible(false)}
+              onNavigate={(ruta) => {
+                setMenuVisible(false);
+                navigation.navigate("Planes");
               }}
             />
           </View>
@@ -973,6 +981,7 @@ const GastoIngreso = () => {
         </View>
       </Modal>
     </View>
+    
   );
 };
 const styles = StyleSheet.create({
