@@ -718,6 +718,7 @@ const GastoIngreso = () => {
                     <TextInput
                       style={globalStyles.inputForm}
                       keyboardType="numeric"
+                      maxLength={10}
                       value={metaForm.MontoGuardado}
                       onChangeText={(t) => setMetaForm({ ...metaForm, MontoGuardado: t.replace(/[^0-9.]/g, "") })}
                       placeholder="0.00"
@@ -731,6 +732,7 @@ const GastoIngreso = () => {
                     <TextInput
                       style={globalStyles.inputForm}
                       keyboardType="numeric"
+                      maxLength={10}
                       value={metaForm.MontoObjetivo}
                       onChangeText={(t) => setMetaForm({ ...metaForm, MontoObjetivo: t.replace(/[^0-9.]/g, "") })}
                       placeholder="0.00"
@@ -854,7 +856,7 @@ const GastoIngreso = () => {
 
               <View style={globalStyles.formularioGrupo}>
                 <Text style={globalStyles.labelForm}>Monto Objetivo ($)</Text>
-                <TextInput style={globalStyles.inputForm} keyboardType="numeric" value={metaForm.MontoObjetivo} onChangeText={(t) => setMetaForm({ ...metaForm, MontoObjetivo: t.replace(/[^0-9.]/g, "") })} placeholder="0.00" placeholderTextColor="#666" />
+                <TextInput style={globalStyles.inputForm} keyboardType="numeric" maxLength={10} value={metaForm.MontoObjetivo} onChangeText={(t) => setMetaForm({ ...metaForm, MontoObjetivo: t.replace(/[^0-9.]/g, "") })} placeholder="0.00" placeholderTextColor="#666" />
               </View>
 
               {/* ... (Aquí irían tus DatePickers de fecha Inicio y Objetivo igual que antes) ... */}
