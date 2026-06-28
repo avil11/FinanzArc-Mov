@@ -11,7 +11,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Tu IP local y puerto
-const API_BASE_URL = "http://192.168.1.126:45455/api"; 
+const API_BASE_URL = "http://192.168.1.126:45459/api"; 
 
 // 1. FUNCIÓN AUXILIAR (Switch Case) - Ubicada globalmente para que no haya errores de scope
 const obtenerNombrePlan = (idRol) => {

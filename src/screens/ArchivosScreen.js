@@ -1,16 +1,18 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { 
-  View, Text, TouchableOpacity, Alert, ActivityIndicator, 
-  ScrollView, Modal, Image, Linking, StyleSheet, Dimensions 
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import {
+  View, Text, TouchableOpacity, Alert, ActivityIndicator,
+  ScrollView, Modal, Image, Linking, StyleSheet, Dimensions
 } from "react-native";
 import * as DocumentPicker from 'expo-document-picker';
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from "@react-navigation/native";
-import { globalStyles } from "../styles/styles"; // <-- IMPORTACIÓN GLOBAL MANTENIDA
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { globalStyles } from "../styles/styles";
 
-const API_BASE_URL = "http://192.168.100.3:45455/api";
-const SERVER_HOST = "http://192.168.100.3:45455/api";
+const API_BASE_URL = "http://192.168.1.126:45459/api";
+const SERVER_HOST = "http://192.168.1.126:45459"; 
+
+
 const { width } = Dimensions.get("window");
 
 export default function ArchivosScreen() {
@@ -36,7 +38,11 @@ export default function ArchivosScreen() {
   const [mesFiltro, setMesFiltro] = useState("");
   const [anioFiltro, setAnioFiltro] = useState(new Date().getFullYear().toString());
 
-  useEffect(() => { inicializarComponente(); }, []);
+  useFocusEffect(
+    useCallback(() => {
+      inicializarComponente();
+    }, [])
+  );
 
   useEffect(() => {
     if (modalAbierto) cargarTransacciones(tipoSubida);
@@ -82,9 +88,20 @@ export default function ArchivosScreen() {
       const datosUsuario = await resUsuario.json();
       setUsuario(datosUsuario);
 
-      const esPremium = (datosUsuario.IdRol === 3 || datosUsuario.IdRol === 4);
+      // 1. Convertimos a número para evitar que un "3" (string) falle la validación
+      const rolNumerico = Number(datosUsuario.IdRol);
+
+      // 2. SOLO roles 3 y 4 pasan. Si es 1, 2, o cualquier otro, será false.
+      const esPremium = (rolNumerico === 3 || rolNumerico === 4);
+
       setRolHabilitado(esPremium);
-      if (!esPremium) return setCargando(false);
+
+      // 3. Si NO es premium, cortamos la ejecución aquí mismo. 
+      // Esto evita que se hagan peticiones a la API para traer documentos.
+      if (!esPremium) {
+        setCargando(false);
+        return;
+      }
 
       const [resIngresos, resGastos, resHistIng, resHistGas] = await Promise.all([
         fetch(`${API_BASE_URL}/DocumentoIngreso/Listar`, { headers: { "Authorization": `Bearer ${token}` } }),
@@ -118,7 +135,7 @@ export default function ArchivosScreen() {
       // 1. Reemplazamos el espacio por la 'T' para evitar 'Invalid Date' en móviles
       const fechaSegura = doc.FechaCarga.replace(" ", "T");
       const fecha = new Date(fechaSegura);
-      
+
       // 2. Usamos métodos locales
       const anioDoc = fecha.getFullYear().toString();
       const mesDoc = (fecha.getMonth() + 1).toString();
@@ -135,33 +152,88 @@ export default function ArchivosScreen() {
 
   const seleccionarArchivo = async () => {
     try {
-      const result = await DocumentPicker.getDocumentAsync({ type: "*/*", copyToCacheDirectory: true });
-      // expo-document-picker returns { type: 'success'|'cancel', name, size, uri, mimeType }
-      if (result.type === 'success') {
-        setArchivoSeleccionado(result);
-      }
-    } catch (err) { Alert.alert("Error", "No se pudo seleccionar el archivo"); }
-  };
+      // Dejamos "*/*" porque sabemos que esto SÍ te abre el selector correctamente
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "*/*",
+        copyToCacheDirectory: true
+      });
 
+      let archivoTemp = null;
+
+      // 1. Extraemos los datos del archivo de forma segura (soporta cualquier versión de Expo)
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        archivoTemp = result.assets[0];
+      } else if (result.type === 'success') {
+        archivoTemp = result;
+      } else {
+        // El usuario canceló o cerró el modal de archivos
+        return;
+      }
+
+      // 2. VALIDACIÓN ESTRICTA DE FORMATO
+      const nombreArchivo = archivoTemp.name.toLowerCase();
+      const esValido = nombreArchivo.endsWith('.jpg') ||
+        nombreArchivo.endsWith('.jpeg') ||
+        nombreArchivo.endsWith('.png') ||
+        nombreArchivo.endsWith('.pdf');
+
+      if (!esValido) {
+        Alert.alert("Formato no válido", "Solo puedes subir archivos .jpg, .jpeg, .png o .pdf");
+        return; // Cortamos la ejecución para que no se guarde
+      }
+
+      // 3. Si pasa la validación, lo guardamos en el estado para poder subirlo
+      setArchivoSeleccionado(archivoTemp);
+
+    } catch (err) {
+      Alert.alert("Error", "No se pudo seleccionar el archivo");
+    }
+  };
   const ejecutarSubidaArchivo = async () => {
-    if (!archivoSeleccionado) return Alert.alert("Aviso", "Por favor, seleccione un archivo.");
-    if (!idTransaccion) return Alert.alert("Aviso", "Por favor, seleccione una transacción.");
+    if (!archivoSeleccionado) {
+      Alert.alert("Aviso", "Por favor, seleccione un archivo.");
+      return;
+    }
+    if (!idTransaccion) {
+      Alert.alert("Aviso", "Por favor, seleccione una transacción.");
+      return;
+    }
 
     setSubiendo(true);
     const token = await AsyncStorage.getItem("Token");
-    const formData = new FormData();
-    formData.append("archivo", { uri: archivoSeleccionado.uri, name: archivoSeleccionado.name, type: archivoSeleccionado.mimeType || 'application/octet-stream' });
 
-    let urlUpload = tipoSubida === "ingreso" ? `${API_BASE_URL}/DocumentoIngreso/Upload` : `${API_BASE_URL}/DocumentoGasto/Upload`;
-    formData.append(tipoSubida === "ingreso" ? "idIngreso" : "idGasto", idTransaccion);
+    // 1. Instanciamos el FormData igual que en la web
+    const formData = new FormData();
+
+    // 2. Adjuntamos el archivo. Este objeto { uri, name, type } es el 
+    // equivalente directo en móvil al "archivoSeleccionado" de la web.
+    formData.append("archivo", {
+      uri: archivoSeleccionado.uri,
+      name: archivoSeleccionado.name,
+      type: archivoSeleccionado.mimeType || 'application/octet-stream'
+    });
+
+    // 3. Respetamos tu lógica de la web para la URL y el ID
+    let urlUpload = "";
+    if (tipoSubida === "ingreso") {
+      formData.append("idIngreso", idTransaccion);
+      urlUpload = `${API_BASE_URL}/DocumentoIngreso/Upload`;
+    } else {
+      formData.append("idGasto", idTransaccion);
+      urlUpload = `${API_BASE_URL}/DocumentoGasto/Upload`;
+    }
 
     try {
       const respuesta = await fetch(urlUpload, {
         method: "POST",
-        headers: { "Authorization": `Bearer ${token}` },
+        headers: {
+          "Authorization": `Bearer ${token}`
+        },
         body: formData
       });
+
       if (!respuesta.ok) throw new Error("Error al subir el archivo.");
+
       Alert.alert("Éxito", "Documento vinculado exitosamente.");
       setModalAbierto(false);
       setArchivoSeleccionado(null);
@@ -203,6 +275,34 @@ export default function ArchivosScreen() {
 
   const esImagen = (ext) => ext ? [".jpg", ".jpeg", ".png", ".gif"].includes(ext.toLowerCase()) : false;
 
+ const abrirArchivoVisualizador = async (rutaArchivo) => {
+    // 1. Si rutaArchivo ya es una URL absoluta, la usamos. Si no, la armamos.
+    let urlFinal = rutaArchivo.startsWith('http') 
+      ? rutaArchivo 
+      : `${SERVER_HOST}${rutaArchivo}`;
+
+    // 2. CORRECCIÓN: Si la URL contiene "localhost", la reemplazamos por tu IP actual
+    // Esto soluciona que la base de datos tenga guardado el localhost viejo
+    urlFinal = urlFinal.replace('localhost:60496', '192.168.1.126:45459');
+
+    // 3. CORRECCIÓN: Si por error la URL tiene "/api/Uploads", cambiamos a "/Uploads"
+    // (A veces el IIS mapea el /api solo para la lógica, no para los archivos estáticos)
+    urlFinal = urlFinal.replace('/api/Uploads', '/Uploads');
+
+    console.log("Intentando abrir URL:", urlFinal); // MIRA ESTO EN TU CONSOLA DE DESARROLLO
+
+    try {
+      const puedeAbrir = await Linking.canOpenURL(urlFinal);
+      if (puedeAbrir) {
+        await Linking.openURL(urlFinal);
+      } else {
+        Alert.alert("Aviso", "No se puede abrir este enlace. Verifica la ruta.");
+      }
+    } catch (error) {
+      Alert.alert("Error", "No se pudo abrir el comprobante.");
+    }
+  };
+
   const renderTarjetaDocumento = (doc, tipo) => {
     const isIngreso = tipo === "ingreso";
     const refHistorial = isIngreso
@@ -223,7 +323,7 @@ export default function ArchivosScreen() {
               </View>
             )}
           </View>
-          
+
           <View style={styles.cardDetails}>
             <Text style={styles.cardTitle} numberOfLines={1}>{doc.NombreArchivoOriginal}</Text>
             <Text style={styles.cardSubtitle} numberOfLines={1}>Ref: {refHistorial}</Text>
@@ -236,9 +336,12 @@ export default function ArchivosScreen() {
           <Text style={globalStyles.movimientoFecha}>{new Date(doc.FechaCarga).toLocaleDateString()}</Text>
         </View>
         <View style={globalStyles.archivoAcciones}>
-          <TouchableOpacity style={globalStyles.botonDescargaArchivos} onPress={() => Linking.openURL(`${SERVER_HOST}${doc.RutaArchivo}`)}>
-            <Text style={globalStyles.textoDescarga}>Visualizar</Text>
-          </TouchableOpacity>
+          <TouchableOpacity 
+      style={globalStyles.botonDescargaArchivos} 
+      onPress={() => abrirArchivoVisualizador(doc.RutaArchivo)}
+    >
+      <Text style={globalStyles.textoDescarga}>Visualizar</Text>
+    </TouchableOpacity>
           <TouchableOpacity style={globalStyles.botonModalEliminarArchivos} onPress={() => eliminarDocumento(isIngreso ? doc.IdDocumentoIngreso : doc.IdDocumentoGasto, tipo)}>
             <Text style={globalStyles.textoEliminar}>Eliminar</Text>
           </TouchableOpacity>
@@ -265,7 +368,7 @@ export default function ArchivosScreen() {
           </View>
           <Text style={styles.premiumTitle}>Apartado restringido</Text>
           <Text style={styles.premiumText}>
-            Para acceder a esta función, necesitas contar con nuestro plan Premium. 
+            Para acceder a esta función, necesitas contar con nuestro plan Premium.
             ¡Desbloquea todo el potencial de FinanzARC ahora!
           </Text>
           <TouchableOpacity activeOpacity={0.8} style={styles.btnPremium} onPress={() => navigation.navigate("planes")}>
@@ -296,7 +399,7 @@ export default function ArchivosScreen() {
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        
+
         <View style={styles.headerSection}>
           <Text style={styles.headerTitle}>Comprobantes</Text>
           <Text style={styles.headerSubtitle}>Gestor de tickets y facturas digitalizados.</Text>
@@ -309,12 +412,12 @@ export default function ArchivosScreen() {
               {Array.from({ length: 12 }, (_, i) => {
                 const fechaMes = new Date(2024, i, 1);
                 const nombreMes = fechaMes.toLocaleString('es-ES', { month: 'long' });
-                
+
                 return (
-                  <Picker.Item 
-                    key={i + 1} 
-                    label={nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1)} 
-                    value={(i + 1).toString()} 
+                  <Picker.Item
+                    key={i + 1}
+                    label={nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1)}
+                    value={(i + 1).toString()}
                   />
                 );
               })}
@@ -348,16 +451,16 @@ export default function ArchivosScreen() {
         </TouchableOpacity>
 
         <View style={styles.tabsContainer}>
-          <TouchableOpacity 
-            activeOpacity={0.7} 
-            style={[styles.tabButton, panelActivo === "ingreso" && styles.tabButtonActive]} 
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={[styles.tabButton, panelActivo === "ingreso" && styles.tabButtonActive]}
             onPress={() => setPanelActivo("ingreso")}
           >
             <Text style={[styles.tabText, panelActivo === "ingreso" && styles.tabTextActive]}>Ingresos</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
-            activeOpacity={0.7} 
-            style={[styles.tabButton, panelActivo === "gasto" && styles.tabButtonActive]} 
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={[styles.tabButton, panelActivo === "gasto" && styles.tabButtonActive]}
             onPress={() => setPanelActivo("gasto")}
           >
             <Text style={[styles.tabText, panelActivo === "gasto" && styles.tabTextActive]}>Gastos</Text>

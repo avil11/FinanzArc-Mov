@@ -12,6 +12,7 @@ import GeneralScreen from "./src/screens/GeneralScreen";
 import MovimientosScreen from "./src/screens/MovimientosScreen";
 import ArchivosScreen from "./src/screens/ArchivosScreen";
 import PlanesScreen from "./src/screens/PlanesScreen";
+import AgregarIngresoGastoScreen from "./src/screens/AgregarIngresoGastoScreen"
 
 const Stack = createStackNavigator();
 
@@ -36,6 +37,7 @@ export default function App() {
           <Stack.Screen name="Movimientos" component={MovimientosScreen} options={{ title: "Movimientos" }} />
           <Stack.Screen name="Archivos" component={ArchivosScreen} options={{ title: "Archivos" }} />
           <Stack.Screen name="Planes" component={PlanesScreen} options={{ title: "Planes" }} />
+          <Stack.Screen name="AgregarIngresoGasto" component={AgregarIngresoGastoScreen} options={{ title: "AgregarIngresoGasto" }} />
           
         </Stack.Navigator>
       </NavigationContainer>

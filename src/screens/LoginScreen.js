@@ -16,7 +16,7 @@ const LoginScreen = () => {
   const [ocultarPassword, setOcultarPassword] = useState(true);
 
   const abrirWeb = async () => {
-    const url = "https://tu-pagina-web.com"; 
+    const url = "https://tu-pagina-web.com";
     const soportado = await Linking.canOpenURL(url);
     if (soportado) {
       await Linking.openURL(url);
@@ -46,10 +46,20 @@ const LoginScreen = () => {
       }
 
       const data = await respuesta.json();
-      
+
+      // 🔐 ALMACENAMIENTO SEGURO DEL ECOSISTEMA DE AUTENTICACIÓN
       await authStorage.setItem("Token", data.Token);
       await authStorage.setItem("Nombre", data.Nombre || "Usuario");
       await authStorage.setItem("Apellido", data.Apellido || "");
+
+      const uid = data.idUsuario ?? data.IdUsuario;
+      if (uid !== undefined && uid !== null) {
+        // IMPORTANTE: Usa la importación directa de AsyncStorage para evitar el problema de 'undefined'
+        await AsyncStorage.setItem("IdUsuario", uid.toString());
+        console.log("IdUsuario guardado correctamente:", uid);
+      } else {
+        console.warn("Alerta: La API de Login no retornó ningún campo 'idUsuario'.");
+      }
 
       navigation.replace("General");
     } catch (err) {
@@ -59,12 +69,13 @@ const LoginScreen = () => {
     }
   };
 
+
   return (
     <View style={globalStyles.loginContainer}>
       <View style={globalStyles.loginCard}>
         <Text style={globalStyles.loginLogo}>FinanzArc</Text>
         <Text style={globalStyles.loginSub}>Ingrese al Ecosistema Financiero Móvil.</Text>
-        
+
         <Text style={globalStyles.loginInfoText}>
           Si usted no tiene una cuenta de FinanzARC, diríjase a nuestra página web para crear una.
         </Text>
@@ -72,35 +83,35 @@ const LoginScreen = () => {
         <TouchableOpacity onPress={abrirWeb} activeOpacity={0.7}>
           <Text style={globalStyles.loginLinkText}>Crear cuenta en FinanzARC Web →</Text>
         </TouchableOpacity>
-        
+
         {errorMensaje ? <Text style={globalStyles.loginErrorText}>{errorMensaje}</Text> : null}
 
         <View style={globalStyles.loginGroup}>
           <Text style={globalStyles.loginLabel}>Nombre de Usuario</Text>
-          <TextInput 
-            style={globalStyles.loginInput} 
-            value={NombreUsuario} 
-            onChangeText={setNombreUsuario} 
-            placeholder="nombredeusuario" 
-            placeholderTextColor="#555" 
-            autoCapitalize="none" 
+          <TextInput
+            style={globalStyles.loginInput}
+            value={NombreUsuario}
+            onChangeText={setNombreUsuario}
+            placeholder="nombredeusuario"
+            placeholderTextColor="#555"
+            autoCapitalize="none"
           />
         </View>
 
         <View style={globalStyles.loginGroup}>
           <Text style={globalStyles.loginLabel}>Contraseña</Text>
-          
+
           <View style={globalStyles.loginPasswordContainer}>
-            <TextInput 
-              style={globalStyles.loginPasswordInput} 
-              value={passwordHash} 
-              onChangeText={setPassword} 
-              placeholder="••••••••" 
-              placeholderTextColor="#555" 
+            <TextInput
+              style={globalStyles.loginPasswordInput}
+              value={passwordHash}
+              onChangeText={setPassword}
+              placeholder="••••••••"
+              placeholderTextColor="#555"
               secureTextEntry={ocultarPassword}
             />
-            <TouchableOpacity 
-              style={globalStyles.loginEyeButton} 
+            <TouchableOpacity
+              style={globalStyles.loginEyeButton}
               onPress={() => setOcultarPassword(!ocultarPassword)}
             >
               <Text style={globalStyles.loginEyeText}>

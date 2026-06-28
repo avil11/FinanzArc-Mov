@@ -8,12 +8,15 @@ import {
 } from "react-native";
 import Svg, { Circle, G, Text as SvgText } from "react-native-svg";
 import DateTimePicker from '@react-native-community/datetimepicker';
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+
 import MenuLateral from "../components/MenuLateral"; // Ajusta la ruta según donde lo hayas guardado
 
 
 import { API_BASE_URL, API_ENDPOINTS } from "../services/api";
-import { authStorage } from "../services/auth";
+
 import { globalStyles } from "../styles/styles";
 import Navbar from "../components/Navbar";
 
@@ -104,13 +107,22 @@ const GastoIngreso = () => {
     const temporizador = setTimeout(() => setMostrarSaludo(false), 4000);
 
     const inicializarDatos = async () => {
-      const nom = await authStorage.getItem("Nombre");
-      const ape = await authStorage.getItem("Apellido");
-      if (nom) setNombreUsuario(nom);
-      if (ape) setApellidoUsuario(ape);
+      try {
+        // Leemos directo del storage, sin pasar por el objeto authStorage
+        const nom = await AsyncStorage.getItem("Nombre");
+        const ape = await AsyncStorage.getItem("Apellido");
+        const token = await AsyncStorage.getItem("Token");
 
-      const cotizacionesData = await obtenerCotizaciones();
-      obtenerDatos(cotizacionesData);
+        if (nom) setNombreUsuario(nom);
+        if (ape) setApellidoUsuario(ape);
+
+        if (token) {
+          const cotizacionesData = await obtenerCotizaciones();
+          obtenerDatos(cotizacionesData, token); // Pasamos el token directamente
+        }
+      } catch (error) {
+        console.error("Error al cargar sesión:", error);
+      }
     };
 
     inicializarDatos();
@@ -127,10 +139,9 @@ const GastoIngreso = () => {
     }
   };
 
-  const obtenerDatos = async (cotizacionesData) => {
-    const token = await authStorage.getItem("Token");
-    if (!token) return;
-
+  // Cambia la definición de la función así:
+  const obtenerDatos = async (cotizacionesData, token) => {
+    // Si ya tienes el token aquí, úsalo:
     fetch(`${API_BASE_URL}${API_ENDPOINTS.usuarios}/ByToken`, {
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -307,8 +318,6 @@ const GastoIngreso = () => {
     } catch (error) {
       lanzarToast("Error al eliminar la meta", "error");
     } finally {
-      // FINALLY: Se ejecuta SIEMPRE. Es nuestro seguro de vida.
-      // Cierra el modal pase lo que pase, evitando la pantalla congelada.
       setModalConfirmarEliminarAbierto(false);
       setMetaAEliminarTemporal(null);
 
@@ -324,7 +333,6 @@ const GastoIngreso = () => {
       });
     }
   };
-
   const archivarMesActual = async () => {
     if (!idUsuarioActual) {
       lanzarToast("No se encontró un usuario válido para realizar la action.", "warning");
@@ -354,7 +362,6 @@ const GastoIngreso = () => {
       lanzarToast("Error de red al intentar archivar el mes.", "error");
     }
   };
-
   const cerrarSesionConfirmado = async () => {
     try {
       await authStorage.removeItem("Token");
@@ -370,7 +377,6 @@ const GastoIngreso = () => {
       lanzarToast("Error al cerrar sesión", "error");
     }
   };
-
   const manejarCerrarSesion = () => {
     Alert.alert(
       "Cerrar Sesión",
@@ -868,54 +874,54 @@ const GastoIngreso = () => {
               </View>
 
               {/* ... (Aquí irían tus DatePickers de fecha Inicio y Objetivo igual que antes) ... */}
-              
-              {/* Fecha Inicio */}
-                  <View style={globalStyles.formularioGrupo}>
-                    <Text style={globalStyles.labelForm}>Fecha de Inicio</Text>
-                    <TouchableOpacity style={globalStyles.inputForm} onPress={() => setMostrarPickerInicio(true)}>
-                      <Text style={{ color: metaForm.FechaInicio ? "#ffffff" : "#666666", paddingVertical: 4 }}>
-                        {metaForm.FechaInicio || "Seleccionar Fecha"}
-                      </Text>
-                    </TouchableOpacity>
-                    {mostrarPickerInicio && (
-                      <DateTimePicker
-                        value={metaForm.FechaInicio ? new Date(metaForm.FechaInicio + 'T12:00:00') : new Date()}
-                        mode="date"
-                        display="default"
-                        onChange={(event, selectedDate) => {
-                          setMostrarPickerInicio(false);
-                          if (selectedDate) {
-                            const fechaFormateada = selectedDate.toISOString().split('T')[0];
-                            setMetaForm({ ...metaForm, FechaInicio: fechaFormateada });
-                          }
-                        }}
-                      />
-                    )}
-                  </View>
 
-                  {/* Fecha Objetivo */}
-                  <View style={globalStyles.formularioGrupo}>
-                    <Text style={globalStyles.labelForm}>Fecha Objetivo</Text>
-                    <TouchableOpacity style={globalStyles.inputForm} onPress={() => setMostrarPickerObjetivo(true)}>
-                      <Text style={{ color: metaForm.FechaObjetivo ? "#ffffff" : "#666666", paddingVertical: 4 }}>
-                        {metaForm.FechaObjetivo || "Seleccionar Fecha"}
-                      </Text>
-                    </TouchableOpacity>
-                    {mostrarPickerObjetivo && (
-                      <DateTimePicker
-                        value={metaForm.FechaObjetivo ? new Date(metaForm.FechaObjetivo + 'T12:00:00') : new Date()}
-                        mode="date"
-                        display="default"
-                        onChange={(event, selectedDate) => {
-                          setMostrarPickerObjetivo(false);
-                          if (selectedDate) {
-                            const fechaFormateada = selectedDate.toISOString().split('T')[0];
-                            setMetaForm({ ...metaForm, FechaObjetivo: fechaFormateada });
-                          }
-                        }}
-                      />
-                    )}
-                  </View>
+              {/* Fecha Inicio */}
+              <View style={globalStyles.formularioGrupo}>
+                <Text style={globalStyles.labelForm}>Fecha de Inicio</Text>
+                <TouchableOpacity style={globalStyles.inputForm} onPress={() => setMostrarPickerInicio(true)}>
+                  <Text style={{ color: metaForm.FechaInicio ? "#ffffff" : "#666666", paddingVertical: 4 }}>
+                    {metaForm.FechaInicio || "Seleccionar Fecha"}
+                  </Text>
+                </TouchableOpacity>
+                {mostrarPickerInicio && (
+                  <DateTimePicker
+                    value={metaForm.FechaInicio ? new Date(metaForm.FechaInicio + 'T12:00:00') : new Date()}
+                    mode="date"
+                    display="default"
+                    onChange={(event, selectedDate) => {
+                      setMostrarPickerInicio(false);
+                      if (selectedDate) {
+                        const fechaFormateada = selectedDate.toISOString().split('T')[0];
+                        setMetaForm({ ...metaForm, FechaInicio: fechaFormateada });
+                      }
+                    }}
+                  />
+                )}
+              </View>
+
+              {/* Fecha Objetivo */}
+              <View style={globalStyles.formularioGrupo}>
+                <Text style={globalStyles.labelForm}>Fecha Objetivo</Text>
+                <TouchableOpacity style={globalStyles.inputForm} onPress={() => setMostrarPickerObjetivo(true)}>
+                  <Text style={{ color: metaForm.FechaObjetivo ? "#ffffff" : "#666666", paddingVertical: 4 }}>
+                    {metaForm.FechaObjetivo || "Seleccionar Fecha"}
+                  </Text>
+                </TouchableOpacity>
+                {mostrarPickerObjetivo && (
+                  <DateTimePicker
+                    value={metaForm.FechaObjetivo ? new Date(metaForm.FechaObjetivo + 'T12:00:00') : new Date()}
+                    mode="date"
+                    display="default"
+                    onChange={(event, selectedDate) => {
+                      setMostrarPickerObjetivo(false);
+                      if (selectedDate) {
+                        const fechaFormateada = selectedDate.toISOString().split('T')[0];
+                        setMetaForm({ ...metaForm, FechaObjetivo: fechaFormateada });
+                      }
+                    }}
+                  />
+                )}
+              </View>
 
               <View style={globalStyles.formularioGrupo}>
                 <Text style={globalStyles.labelForm}>Divisa</Text>
@@ -981,7 +987,7 @@ const GastoIngreso = () => {
         </View>
       </Modal>
     </View>
-    
+
   );
 };
 const styles = StyleSheet.create({

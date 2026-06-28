@@ -3,7 +3,7 @@ import { View, Text, ActivityIndicator, FlatList, TextInput, Alert } from "react
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { globalStyles } from "../styles/styles"; // <-- IMPORTACIÓN GLOBAL
 
-const API_BASE_URL = "http://192.168.100.3:45455/api";
+const API_BASE_URL = "http://192.168.1.126:45459/api";
 
 // Diccionario de divisas basado en tu API
 const MAPA_DIVISAS = {
