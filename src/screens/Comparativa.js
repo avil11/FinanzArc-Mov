@@ -3,7 +3,7 @@ import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Dimensions, Touc
 import { PieChart } from 'react-native-chart-kit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE_URL = "https://192.168.1.126:45459/api"; 
+const API_BASE_URL = "https://192.168.100.3:45455/api"; 
 const screenWidth = Dimensions.get("window").width;
 
 const ComparativaScreen = () => {

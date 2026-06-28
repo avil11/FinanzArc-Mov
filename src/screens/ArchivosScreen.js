@@ -9,8 +9,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { globalStyles } from "../styles/styles";
 
-const API_BASE_URL = "http://192.168.1.126:45459/api";
-const SERVER_HOST = "http://192.168.1.126:45459"; 
+const API_BASE_URL = "http://192.168.100.3:45455/api";
+const SERVER_HOST = "http://192.168.100.3:45455"; 
 
 
 const { width } = Dimensions.get("window");
@@ -283,7 +283,7 @@ export default function ArchivosScreen() {
 
     // 2. CORRECCIÓN: Si la URL contiene "localhost", la reemplazamos por tu IP actual
     // Esto soluciona que la base de datos tenga guardado el localhost viejo
-    urlFinal = urlFinal.replace('localhost:60496', '192.168.1.126:45459');
+    urlFinal = urlFinal.replace('localhost:60496', '192.168.100.3:45455');
 
     // 3. CORRECCIÓN: Si por error la URL tiene "/api/Uploads", cambiamos a "/Uploads"
     // (A veces el IIS mapea el /api solo para la lógica, no para los archivos estáticos)

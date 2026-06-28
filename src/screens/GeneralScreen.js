@@ -97,10 +97,24 @@ const GastoIngreso = () => {
 
   const formatMontoParaInput = (val) => {
     if (val === "" || val === null || val === undefined) return "";
-    const stringVal = val.toString();
-    const parts = stringVal.split(".");
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    return parts.length > 1 ? parts[0] + "," + parts[1] : stringVal;
+    // Deja solo números y la coma (para decimales)
+    let cleanText = val.toString().replace(/[^0-9,]/g, "");
+    const parts = cleanText.split(",");
+    // Previene múltiples comas
+    if (parts.length > 2) {
+      cleanText = parts[0] + "," + parts.slice(1).join("");
+    }
+    const finalParts = cleanText.split(",");
+    // Agrega el punto de separador de miles a la parte entera
+    finalParts[0] = finalParts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return finalParts.length > 1 ? finalParts[0] + "," + finalParts[1] : finalParts[0];
+  };
+
+  const parseMontoParaOutput = (val) => {
+    if (!val) return 0;
+    // Transforma el formato visual (ej: 1.000,50) en formato de código válido (1000.50)
+    const cleanText = val.toString().replace(/\./g, "").replace(",", ".");
+    return parseFloat(cleanText) || 0;
   };
 
   useEffect(() => {
@@ -231,8 +245,8 @@ const GastoIngreso = () => {
       lanzarToast("Debes ingresar un nombre para la meta", "warning");
       return;
     }
-    const monto = Number(metaForm.MontoObjetivo);
-    if (!metaForm.MontoObjetivo || monto <= 0) {
+    const monto = parseMontoParaOutput(metaForm.MontoObjetivo);
+    if (!monto || monto <= 0) {
       lanzarToast("Debes ingresar un monto objetivo válido", "warning");
       return;
     }
@@ -252,8 +266,8 @@ const GastoIngreso = () => {
     const metaAGuardar = {
       IdMetaAhorro: metaForm.IdMetaAhorro,
       Nombre: metaForm.Nombre,
-      MontoObjetivo: parseFloat(metaForm.MontoObjetivo),
-      MontoGuardado: parseFloat(metaForm.MontoGuardado || 0),
+      MontoObjetivo: monto,
+      MontoGuardado: parseMontoParaOutput(metaForm.MontoGuardado),
       FechaMeta: new Date(metaForm.FechaObjetivo + 'T12:00:00').toISOString(),
       FechaInicio: new Date(metaForm.FechaInicio + 'T12:00:00').toISOString(),
       IdDivisa: parseInt(metaForm.Divisa || 1),
@@ -428,8 +442,8 @@ const GastoIngreso = () => {
     setMetaForm({
       IdMetaAhorro: meta.IdMetaAhorro,
       Nombre: meta.Nombre || "",
-      MontoObjetivo: (meta.MontoObjetivo || "").toString(),
-      MontoGuardado: (meta.MontoGuardado || "").toString(),
+      MontoObjetivo: formatMontoParaInput(meta.MontoObjetivo),
+      MontoGuardado: formatMontoParaInput(meta.MontoGuardado),
       FechaObjetivo: meta.FechaMeta ? meta.FechaMeta.split("T")[0] : new Date().toISOString().split("T")[0],
       FechaInicio: meta.FechaInicio ? meta.FechaInicio.split("T")[0] : new Date().toISOString().split("T")[0],
       Divisa: (meta.IdDivisa || 1).toString()
@@ -549,7 +563,7 @@ const GastoIngreso = () => {
             </Text>
             <Text style={globalStyles.descripcionEncabezado}>Todas las monedas son convertidas automáticamente a ARS.</Text>
             <Text style={globalStyles.cotizacionesTexto}>
-              USD: ${cotizaciones.USD} | EUR: ${cotizaciones.EUR}
+              USD: ${Number(cotizaciones.USD).toLocaleString("es-AR")} | EUR: ${Number(cotizaciones.EUR).toLocaleString("es-AR")}
             </Text>
           </View>
 
@@ -732,10 +746,10 @@ const GastoIngreso = () => {
                     <TextInput
                       style={globalStyles.inputForm}
                       keyboardType="numeric"
-                      maxLength={10}
+                      maxLength={15}
                       value={metaForm.MontoGuardado}
-                      onChangeText={(t) => setMetaForm({ ...metaForm, MontoGuardado: t.replace(/[^0-9.]/g, "") })}
-                      placeholder="0.00"
+                      onChangeText={(t) => setMetaForm({ ...metaForm, MontoGuardado: formatMontoParaInput(t) })}
+                      placeholder="0,00"
                       placeholderTextColor="#666"
                     />
                   </View>
@@ -746,10 +760,10 @@ const GastoIngreso = () => {
                     <TextInput
                       style={globalStyles.inputForm}
                       keyboardType="numeric"
-                      maxLength={10}
+                      maxLength={15}
                       value={metaForm.MontoObjetivo}
-                      onChangeText={(t) => setMetaForm({ ...metaForm, MontoObjetivo: t.replace(/[^0-9.]/g, "") })}
-                      placeholder="0.00"
+                      onChangeText={(t) => setMetaForm({ ...metaForm, MontoObjetivo: formatMontoParaInput(t) })}
+                      placeholder="0,00"
                       placeholderTextColor="#666"
                     />
                   </View>
@@ -870,10 +884,8 @@ const GastoIngreso = () => {
 
               <View style={globalStyles.formularioGrupo}>
                 <Text style={globalStyles.labelForm}>Monto Objetivo ($)</Text>
-                <TextInput style={globalStyles.inputForm} keyboardType="numeric" maxLength={10} value={metaForm.MontoObjetivo} onChangeText={(t) => setMetaForm({ ...metaForm, MontoObjetivo: t.replace(/[^0-9.]/g, "") })} placeholder="0.00" placeholderTextColor="#666" />
+                <TextInput style={globalStyles.inputForm} keyboardType="numeric" maxLength={15} value={metaForm.MontoObjetivo} onChangeText={(t) => setMetaForm({ ...metaForm, MontoObjetivo: formatMontoParaInput(t) })} placeholder="0,00" placeholderTextColor="#666" />
               </View>
-
-              {/* ... (Aquí irían tus DatePickers de fecha Inicio y Objetivo igual que antes) ... */}
 
               {/* Fecha Inicio */}
               <View style={globalStyles.formularioGrupo}>
