@@ -7,12 +7,12 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { StyleSheet } from "react-native";
 
 // PANTALLAS (Importaciones limpias sin duplicados)
-import LoginScreen from "./src/screens/LoginScreen";
-import GeneralScreen from "./src/screens/GeneralScreen";
-import MovimientosScreen from "./src/screens/MovimientosScreen";
-import ArchivosScreen from "./src/screens/ArchivosScreen";
-import PlanesScreen from "./src/screens/PlanesScreen";
-import AdministradorMovimientos from "./src/screens/AdministradorMovimientoScreen";
+import LoginScreen from "./src/screens/Login/LoginScreen";
+import GeneralScreen from "./src/screens/General/GeneralScreen";
+import MovimientosScreen from "./src/screens/Movimientos/MovimientosScreen";
+import ArchivosScreen from "./src/screens/Archivos/ArchivosScreen";
+import PlanesScreen from "./src/screens/Planes/PlanesScreen";
+import AdministradorMovimientos from "./src/screens/AdministradorMovimiento/AdministradorMovimientoScreen";
 
 const Stack = createStackNavigator();
 

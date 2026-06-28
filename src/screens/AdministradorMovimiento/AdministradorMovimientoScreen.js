@@ -16,11 +16,11 @@ import {
 } from 'react-native';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { obtenerTasas } from '../services/api'; // Asegúrate de tener esta función en tu archivo api.js
+import { obtenerTasas } from '../../services/api'; // Asegúrate de tener esta función en tu archivo api.js
 
 // NOTA PARA EXPO: Si pruebas en un emulador Android, recuerda que localhost a veces
 // debe cambiarse por 10.0.2.2 o tu IP local (ej. 192.168.x.x) para que conecte al backend de .NET.
-const API_BASE_URL = "http://192.168.100.3:45455/api";
+const API_BASE_URL = "http://192.168.1.126:45457/api";
 
 const AdministradorMovimientos = () => {
   // ==========================================

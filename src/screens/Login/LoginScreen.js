@@ -1,11 +1,12 @@
 import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import { ActivityIndicator, Linking, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { API_BASE_URL, API_ENDPOINTS } from "../services/api";
-import { authStorage } from "../services/auth";
+import { API_BASE_URL, API_ENDPOINTS } from "../../services/api";
+import { authStorage } from "../../services/auth";
 
 // IMPORTAMOS LOS ESTILOS GLOBALES
-import { globalStyles } from "../styles/styles";
+import { globalStyles } from "../../styles/styles";
+import { loginStyles } from './LoginStyles';
 
 const LoginScreen = () => {
   const navigation = useNavigation();
@@ -71,25 +72,26 @@ const LoginScreen = () => {
 
 
   return (
-    <View style={globalStyles.loginContainer}>
-      <View style={globalStyles.loginCard}>
-        <Text style={globalStyles.loginLogo}>FinanzArc</Text>
-        <Text style={globalStyles.loginSub}>Ingrese al Ecosistema Financiero Móvil.</Text>
+    // CAMBIO CLAVE: loginStyles en lugar de globalStyles
+    <View style={loginStyles.loginContainer}>
+      <View style={loginStyles.loginCard}>
+        <Text style={loginStyles.loginLogo}>FinanzArc</Text>
+        <Text style={loginStyles.loginSub}>Ingrese al Ecosistema Financiero Móvil.</Text>
 
-        <Text style={globalStyles.loginInfoText}>
+        <Text style={loginStyles.loginInfoText}>
           Si usted no tiene una cuenta de FinanzARC, diríjase a nuestra página web para crear una.
         </Text>
 
         <TouchableOpacity onPress={abrirWeb} activeOpacity={0.7}>
-          <Text style={globalStyles.loginLinkText}>Crear cuenta en FinanzARC Web →</Text>
+          <Text style={loginStyles.loginLinkText}>Crear cuenta en FinanzARC Web →</Text>
         </TouchableOpacity>
 
-        {errorMensaje ? <Text style={globalStyles.loginErrorText}>{errorMensaje}</Text> : null}
+        {errorMensaje ? <Text style={loginStyles.loginErrorText}>{errorMensaje}</Text> : null}
 
-        <View style={globalStyles.loginGroup}>
-          <Text style={globalStyles.loginLabel}>Nombre de Usuario</Text>
+        <View style={loginStyles.loginGroup}>
+          <Text style={loginStyles.loginLabel}>Nombre de Usuario</Text>
           <TextInput
-            style={globalStyles.loginInput}
+            style={loginStyles.loginInput}
             value={NombreUsuario}
             onChangeText={setNombreUsuario}
             placeholder="nombredeusuario"
@@ -98,12 +100,12 @@ const LoginScreen = () => {
           />
         </View>
 
-        <View style={globalStyles.loginGroup}>
-          <Text style={globalStyles.loginLabel}>Contraseña</Text>
+        <View style={loginStyles.loginGroup}>
+          <Text style={loginStyles.loginLabel}>Contraseña</Text>
 
-          <View style={globalStyles.loginPasswordContainer}>
+          <View style={loginStyles.loginPasswordContainer}>
             <TextInput
-              style={globalStyles.loginPasswordInput}
+              style={loginStyles.loginPasswordInput}
               value={passwordHash}
               onChangeText={setPassword}
               placeholder="••••••••"
@@ -111,18 +113,18 @@ const LoginScreen = () => {
               secureTextEntry={ocultarPassword}
             />
             <TouchableOpacity
-              style={globalStyles.loginEyeButton}
+              style={loginStyles.loginEyeButton}
               onPress={() => setOcultarPassword(!ocultarPassword)}
             >
-              <Text style={globalStyles.loginEyeText}>
+              <Text style={loginStyles.loginEyeText}>
                 {ocultarPassword ? "Mostrar" : "Ocultar"}
               </Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        <TouchableOpacity style={globalStyles.loginBtn} onPress={manejarLogin} disabled={cargando}>
-          {cargando ? <ActivityIndicator color="#121212" /> : <Text style={globalStyles.loginBtnText}>Iniciar Sesión</Text>}
+        <TouchableOpacity style={loginStyles.loginBtn} onPress={manejarLogin} disabled={cargando}>
+          {cargando ? <ActivityIndicator color="#121212" /> : <Text style={loginStyles.loginBtnText}>Iniciar Sesión</Text>}
         </TouchableOpacity>
       </View>
     </View>

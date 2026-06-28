@@ -11,14 +11,15 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import Navbar from "../../components/Navbar";
+import MenuLateral from "../../components/MenuLateral"; // Ajusta la ruta según donde lo hayas guardado
 
-import MenuLateral from "../components/MenuLateral"; // Ajusta la ruta según donde lo hayas guardado
 
+import { API_BASE_URL, API_ENDPOINTS } from "../../services/api";
 
-import { API_BASE_URL, API_ENDPOINTS } from "../services/api";
+import { globalStyles } from "../../styles/styles";
 
-import { globalStyles } from "../styles/styles";
-import Navbar from "../components/Navbar";
+import { generalStyles } from "./GeneralStyles";
 
 
 
@@ -97,22 +98,38 @@ const GastoIngreso = () => {
 
   const formatMontoParaInput = (val) => {
     if (val === "" || val === null || val === undefined) return "";
-    // Deja solo números y la coma (para decimales)
+
+    // 1. Limpieza inicial
     let cleanText = val.toString().replace(/[^0-9,]/g, "");
-    const parts = cleanText.split(",");
-    // Previene múltiples comas
+    let parts = cleanText.split(",");
+
+    // 2. LÍMITE: Cortar parte entera a 9 dígitos
+    if (parts[0].length > 9) {
+      parts[0] = parts[0].substring(0, 9);
+    }
+
+    // 3. Manejo de la coma decimal
     if (parts.length > 2) {
       cleanText = parts[0] + "," + parts.slice(1).join("");
+    } else {
+      cleanText = parts.join(",");
     }
+
     const finalParts = cleanText.split(",");
-    // Agrega el punto de separador de miles a la parte entera
+
+    // 4. Límite de decimales a 2
+    if (finalParts.length > 1 && finalParts[1].length > 2) {
+      finalParts[1] = finalParts[1].substring(0, 2);
+    }
+
+    // 5. Formato con puntos de miles
     finalParts[0] = finalParts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
     return finalParts.length > 1 ? finalParts[0] + "," + finalParts[1] : finalParts[0];
   };
 
   const parseMontoParaOutput = (val) => {
     if (!val) return 0;
-    // Transforma el formato visual (ej: 1.000,50) en formato de código válido (1000.50)
     const cleanText = val.toString().replace(/\./g, "").replace(",", ".");
     return parseFloat(cleanText) || 0;
   };
@@ -234,7 +251,7 @@ const GastoIngreso = () => {
   const limiteAlcanzado = cantidadMetasActivas >= limiteMetas;
 
   const manejarGuardarMeta = async () => {
-    const token = await authStorage.getItem("Token");
+    const token = await AsyncStorage.getItem("Token"); // <-- CORREGIDO
     const esEdicion = metaForm.IdMetaAhorro !== null && metaForm.IdMetaAhorro !== undefined;
 
     if (!esEdicion && limiteAlcanzado) {
@@ -287,7 +304,7 @@ const GastoIngreso = () => {
         lanzarToast(esEdicion ? "Meta actualizada correctamente" : "Meta creada correctamente", "success");
         setModalAgregarAbierto(false);
         setModalEditarAbierto(false);
-        obtenerDatos(cotizaciones);
+        obtenerDatos(cotizaciones, token); // <-- CORREGIDO
       })
       .catch(() => {
         lanzarToast(esEdicion ? "Error al actualizar la meta" : "Error al crear la meta", "error");
@@ -316,8 +333,7 @@ const GastoIngreso = () => {
     }
 
     try {
-      // Usamos authStorage igual que en el resto de tu código
-      const token = await authStorage.getItem("Token");
+      const token = await AsyncStorage.getItem("Token"); // <-- CORREGIDO
 
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ahorros}/${idAEliminar}`, {
         method: "DELETE",
@@ -327,7 +343,7 @@ const GastoIngreso = () => {
       if (!response.ok) throw new Error("Fallo en la API");
 
       lanzarToast("Meta eliminada correctamente", "success");
-      obtenerDatos(cotizaciones);
+      obtenerDatos(cotizaciones, token); // <-- CORREGIDO
 
     } catch (error) {
       lanzarToast("Error al eliminar la meta", "error");
@@ -347,6 +363,7 @@ const GastoIngreso = () => {
       });
     }
   };
+
   const archivarMesActual = async () => {
     if (!idUsuarioActual) {
       lanzarToast("No se encontró un usuario válido para realizar la action.", "warning");
@@ -359,7 +376,7 @@ const GastoIngreso = () => {
 
     try {
       setModalArchivarAbierto(false);
-      const token = await authStorage.getItem("Token");
+      const token = await AsyncStorage.getItem("Token"); // <-- CORREGIDO
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.cierre}/FinalizarMes`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -368,7 +385,7 @@ const GastoIngreso = () => {
 
       if (response.ok) {
         lanzarToast("¡Mes archivado correctamente!", "success");
-        obtenerDatos(cotizaciones);
+        obtenerDatos(cotizaciones, token); // <-- CORREGIDO
       } else {
         lanzarToast("Error al archivar el mes actual. Verifica el servidor.", "error");
       }
@@ -460,7 +477,7 @@ const GastoIngreso = () => {
     let anguloAcumulado = 0;
 
     return (
-      <View style={globalStyles.contenedorGraficoPie}>
+      <View style={generalStyles.contenedorGraficoPie}>
         <Svg width="130" height="130" viewBox="0 0 110 110">
           <G transformOrigin>
             {data.map((item, index) => {
@@ -495,9 +512,10 @@ const GastoIngreso = () => {
   };
   const onRefresh = async () => {
     setRefrescando(true);
-    // Re-obtenemos cotizaciones y datos frescos
+    // Hay que buscar el token de nuevo para pasarlo
+    const token = await AsyncStorage.getItem("Token");
     const nuevasCotizaciones = await obtenerCotizaciones();
-    await obtenerDatos(nuevasCotizaciones);
+    await obtenerDatos(nuevasCotizaciones, token); // <-- AHORA SÍ PASAMOS EL TOKEN
     setRefrescando(false);
   };
   return (
@@ -505,7 +523,9 @@ const GastoIngreso = () => {
       <Navbar onOpenMenu={toggleMenu} />
 
       {menuVisible && (
-        <View style={styles.overlayMenu}>
+        // Cambiamos styles.overlayMenu por un estilo absoluto para que cubra toda la pantalla
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999 }}>
+
           {/* 1. Área transparente que permite cerrar el menú al tocar fuera */}
           <TouchableOpacity
             style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }}
@@ -514,29 +534,21 @@ const GastoIngreso = () => {
           />
 
           {/* 2. El Menú Lateral */}
-          <View style={{ position: 'absolute', height: '100%', width: '80%' }}>
+          <View style={{ position: 'absolute', height: '100%', width: '80%', left: 0, top: 0 }}>
             <MenuLateral
               onClose={() => setMenuVisible(false)}
               onNavigate={(ruta) => {
                 setMenuVisible(false);
-                navigation.navigate("Archivos");
-              }}
-            />
-          </View>
-          <View style={{ position: 'absolute', height: '100%', width: '80%' }}>
-            <MenuLateral
-              onClose={() => setMenuVisible(false)}
-              onNavigate={(ruta) => {
-                setMenuVisible(false);
-                navigation.navigate("Planes");
+                // Usamos la ruta dinámica que te mande el menú en vez de dejarlo fijo
+                navigation.navigate(ruta);
               }}
             />
           </View>
         </View>
       )}
       {toastConfig.visible && (
-        <View style={[globalStyles.toastBanner, { backgroundColor: toastConfig.tipo === "success" ? "#34c759" : toastConfig.tipo === "error" ? "#dc3545" : "#ff9500" }]}>
-          <Text style={globalStyles.toastTexto}>{toastConfig.mensaje}</Text>
+        <View style={[generalStyles.toastBanner, { backgroundColor: toastConfig.tipo === "success" ? "#34c759" : toastConfig.tipo === "error" ? "#dc3545" : "#ff9500" }]}>
+          <Text style={generalStyles.toastTexto}>{toastConfig.mensaje}</Text>
         </View>
       )}
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -553,78 +565,78 @@ const GastoIngreso = () => {
               titleColor="#c8b277"
             />
           }
-          style={globalStyles.contenedorPrincipal} >
-          <View style={globalStyles.seccionEncabezado}>
-            <Text style={globalStyles.tituloPrincipal}>
+          style={generalStyles.contenedorPrincipal} >
+          <View style={generalStyles.seccionEncabezado}>
+            <Text style={generalStyles.tituloPrincipal}>
               {mostrarSaludo ? `¡Bienvenido, ${nombreUsuario} ${apellidoUsuario}!` : "Resumen financiero"}
             </Text>
-            <Text style={globalStyles.descripcionEncabezado}>
+            <Text style={generalStyles.descripcionEncabezado}>
               En este apartado usted verá el balance histórico y acumulado de sus gastos e ingresos. Podrá también establecer metas de ahorro.
             </Text>
-            <Text style={globalStyles.descripcionEncabezado}>Todas las monedas son convertidas automáticamente a ARS.</Text>
-            <Text style={globalStyles.cotizacionesTexto}>
+            <Text style={generalStyles.descripcionEncabezado}>Todas las monedas son convertidas automáticamente a ARS.</Text>
+            <Text style={generalStyles.cotizacionesTexto}>
               USD: ${Number(cotizaciones.USD).toLocaleString("es-AR")} | EUR: ${Number(cotizaciones.EUR).toLocaleString("es-AR")}
             </Text>
           </View>
 
           {/* Módulo de Gastos por Categoría */}
           {datosGastos.length > 0 ? (
-            <View style={globalStyles.tarjetaGeneral}>
-              <Text style={globalStyles.tituloTarjeta}>Gastos por Categoría</Text>
-              <View style={globalStyles.graficoConLeyenda}>
+            <View style={generalStyles.tarjetaGeneral}>
+              <Text style={generalStyles.tituloTarjeta}>Gastos por Categoría</Text>
+              <View style={generalStyles.graficoConLeyenda}>
                 <CustomNativePieChart data={datosGastos} coloresLista={COLORESgasto} />
-                <View style={globalStyles.leyendaGrafico}>
+                <View style={generalStyles.leyendaGrafico}>
                   {obtenerTopCinco(datosGastos).map((item, index) => (
-                    <View style={globalStyles.itemLeyenda} key={index}>
+                    <View style={generalStyles.itemLeyenda} key={index}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                        <View style={[globalStyles.circuloColor, { backgroundColor: COLORESgasto[index % COLORESgasto.length] }]} />
-                        <View style={globalStyles.leyendaTextoContainer}>
-                          <Text numberOfLines={1} style={globalStyles.leyendaTexto}>{item.name}</Text>
+                        <View style={[generalStyles.circuloColor, { backgroundColor: COLORESgasto[index % COLORESgasto.length] }]} />
+                        <View style={generalStyles.leyendaTextoContainer}>
+                          <Text numberOfLines={1} style={generalStyles.leyendaTexto}>{item.name}</Text>
                         </View>
                       </View>
-                      <Text style={globalStyles.valorMontoGasto}>${item.valor.toLocaleString("es-AR")}</Text>
+                      <Text style={generalStyles.valorMontoGasto}>${item.valor.toLocaleString("es-AR")}</Text>
                     </View>
                   ))}
                 </View>
               </View>
             </View>
           ) : (
-            <View style={globalStyles.tarjetaGeneral}>
-              <Text style={globalStyles.tituloTarjeta}>Gastos por Categoría</Text>
-              <View style={globalStyles.avisoVacio}>
-                <Text style={globalStyles.iconoPlaceholder}>📊</Text>
-                <Text style={globalStyles.mensajeVacio}>No se encontraron gastos registrados.</Text>
-                <Text style={globalStyles.sugerenciaVacio}>Registra movimientos para ver información.</Text>
+            <View style={generalStyles.tarjetaGeneral}>
+              <Text style={generalStyles.tituloTarjeta}>Gastos por Categoría</Text>
+              <View style={generalStyles.avisoVacio}>
+                <Text style={generalStyles.iconoPlaceholder}>📊</Text>
+                <Text style={generalStyles.mensajeVacio}>No se encontraron gastos registrados.</Text>
+                <Text style={generalStyles.sugerenciaVacio}>Registra movimientos para ver información.</Text>
               </View>
             </View>
           )}
 
           {/* Módulo de Fuentes de Ingreso */}
           {datosIngresos.length > 0 ? (
-            <View style={globalStyles.tarjetaGeneral}>
-              <Text style={globalStyles.tituloTarjeta}>Fuentes de Ingreso</Text>
-              <View style={globalStyles.graficoConLeyenda}>
+            <View style={generalStyles.tarjetaGeneral}>
+              <Text style={generalStyles.tituloTarjeta}>Fuentes de Ingreso</Text>
+              <View style={generalStyles.graficoConLeyenda}>
                 <CustomNativePieChart data={datosIngresos} coloresLista={COLORES} />
-                <View style={globalStyles.leyendaGrafico}>
+                <View style={generalStyles.leyendaGrafico}>
                   {obtenerTopCinco(datosIngresos).map((item, index) => (
-                    <View style={globalStyles.itemLeyenda} key={index}>
-                      <View style={[globalStyles.circuloColor, { backgroundColor: COLORES[index % COLORES.length] }]} />
-                      <View style={globalStyles.leyendaTextoContainer}>
-                        <Text numberOfLines={1} style={globalStyles.leyendaTexto}>{item.name}</Text>
+                    <View style={generalStyles.itemLeyenda} key={index}>
+                      <View style={[generalStyles.circuloColor, { backgroundColor: COLORES[index % COLORES.length] }]} />
+                      <View style={generalStyles.leyendaTextoContainer}>
+                        <Text numberOfLines={1} style={generalStyles.leyendaTexto}>{item.name}</Text>
                       </View>
-                      <Text style={globalStyles.valorMontoIngreso}>${item.valor.toLocaleString("es-AR")}</Text>
+                      <Text style={generalStyles.valorMontoIngreso}>${item.valor.toLocaleString("es-AR")}</Text>
                     </View>
                   ))}
                 </View>
               </View>
             </View>
           ) : (
-            <View style={globalStyles.tarjetaGeneral}>
-              <Text style={globalStyles.tituloTarjeta}>Fuentes de Ingreso</Text>
-              <View style={globalStyles.avisoVacio}>
-                <Text style={globalStyles.iconoPlaceholder}>📊</Text>
-                <Text style={globalStyles.mensajeVacio}>No se encontraron ingresos registrados.</Text>
-                <Text style={globalStyles.sugerenciaVacio}>Registra movimientos para ver información.</Text>
+            <View style={generalStyles.tarjetaGeneral}>
+              <Text style={generalStyles.tituloTarjeta}>Fuentes de Ingreso</Text>
+              <View style={generalStyles.avisoVacio}>
+                <Text style={generalStyles.iconoPlaceholder}>📊</Text>
+                <Text style={generalStyles.mensajeVacio}>No se encontraron ingresos registrados.</Text>
+                <Text style={generalStyles.sugerenciaVacio}>Registra movimientos para ver información.</Text>
               </View>
             </View>
           )}
@@ -632,13 +644,16 @@ const GastoIngreso = () => {
           {/* Módulo de Objetivos de Ahorro */}
           <View style={{ marginBottom: 40 }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+
               <Text style={{ fontSize: 18, fontWeight: "bold", color: "#ffffff" }}>Objetivos en Curso</Text>
-              <TouchableOpacity style={[globalStyles.botonComparativa, { opacity: limiteAlcanzado ? 0.5 : 1 }]} onPress={abrirModalAgregar} disabled={limiteAlcanzado}>
-                <Text style={globalStyles.botonComparativaTexto}>Agregar Meta</Text>
+
+              <TouchableOpacity style={[generalStyles.botonComparativa, { opacity: limiteAlcanzado ? 0.5 : 1 }]} onPress={abrirModalAgregar} disabled={limiteAlcanzado}>
+                <Text style={generalStyles.botonComparativaTexto}>Agregar Meta</Text>
               </TouchableOpacity>
+
             </View>
 
-            <View style={globalStyles.infoLimitesPlan}>
+            <View style={generalStyles.infoLimitesPlan}>
               <Text style={{ color: "#ffffff", fontSize: 14, fontWeight: "500" }}>
                 Metas activas: <Text style={{ color: "#c8b277", fontWeight: "bold" }}>{cantidadMetasActivas} / {limiteMetas === Infinity ? "∞" : limiteMetas}</Text>
               </Text>
@@ -658,29 +673,38 @@ const GastoIngreso = () => {
               metasActivas.map((meta, idx) => {
                 const porcentaje = meta.objetivo > 0 ? Math.min(100, (meta.actual / meta.objetivo) * 100) : 0;
                 return (
-                  <View key={idx} style={globalStyles.tarjetaAhorroItem}>
-                    <View style={globalStyles.filaProgreso}>
-                      <Text style={{ color: "#fff", fontWeight: "500" }}>{meta.etiqueta}</Text>
-                      <Text style={{ color: "#c8b277", fontWeight: "bold" }}>{porcentaje.toFixed(0)}%</Text>
+                  <View key={idx} style={generalStyles.tarjetaAhorroItem}>
+
+                    <View style={generalStyles.filaProgreso}>
+                      <Text
+                        style={{ color: "#fff", fontWeight: "500", flexShrink: 1, marginRight: 10 }}
+                        numberOfLines={1}
+                      >
+                        {meta.etiqueta}
+                      </Text>
+                      <Text style={{ color: "#c8b277", fontWeight: "bold", flexShrink: 0 }}>
+                        {porcentaje.toFixed(0)}%
+                      </Text>
                     </View>
-                    <View style={globalStyles.pistaBarra}>
-                      <View style={[globalStyles.rellenoBarra, { width: `${porcentaje}%` }]} />
+
+                    <View style={generalStyles.pistaBarra}>
+                      <View style={[generalStyles.rellenoBarra, { width: `${porcentaje}%` }]} />
                     </View>
-                    <Text style={globalStyles.textoMontoProgreso}>
+                    <Text style={generalStyles.textoMontoProgreso}>
                       ${meta.actual.toLocaleString("es-AR")} / ${meta.objetivo.toLocaleString("es-AR")}
                     </Text>
-                    <TouchableOpacity style={globalStyles.botonEditarAhorro} onPress={() => abrirModalEditar(meta)}>
-                      <Text style={globalStyles.botonEditarAhorroTexto}>Editar</Text>
+                    <TouchableOpacity style={generalStyles.botonEditarAhorro} onPress={() => abrirModalEditar(meta)}>
+                      <Text style={generalStyles.botonEditarAhorroTexto}>Editar</Text>
                     </TouchableOpacity>
                   </View>
                 );
               })
             ) : (
-              <View style={globalStyles.tarjetaGeneral}>
-                <View style={globalStyles.avisoVacio}>
-                  <Text style={globalStyles.iconoPlaceholder}>🎯</Text>
-                  <Text style={globalStyles.mensajeVacio}>No hay objetivos de ahorro en curso.</Text>
-                  <Text style={globalStyles.sugerenciaVacio}>Haz clic en 'Agregar Meta' para empezar.</Text>
+              <View style={generalStyles.tarjetaGeneral}>
+                <View style={generalStyles.avisoVacio}>
+                  <Text style={generalStyles.iconoPlaceholder}>🎯</Text>
+                  <Text style={generalStyles.mensajeVacio}>No hay objetivos de ahorro en curso.</Text>
+                  <Text style={generalStyles.sugerenciaVacio}>Haz clic en 'Agregar Meta' para empezar.</Text>
                 </View>
               </View>
             )}
@@ -690,14 +714,22 @@ const GastoIngreso = () => {
               <View style={{ marginTop: 20 }}>
                 <Text style={{ fontSize: 18, fontWeight: "bold", color: "#c8b277", marginBottom: 12 }}>🏆 Logros Alcanzados</Text>
                 {metasCompletadas.map((meta, idx) => (
-                  <View key={idx} style={globalStyles.tarjetaLogro}>
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
-                      <Text style={{ color: "#fff", fontWeight: "600" }}>{meta.etiqueta}</Text>
-                      <Text style={{ color: "#c8b277", fontWeight: "bold" }}>¡Completado!</Text>
+                  <View key={idx} style={generalStyles.tarjetaLogro}>
+
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                      <Text
+                        style={{ color: "#fff", fontWeight: "600", flexShrink: 1, marginRight: 10 }}
+                        numberOfLines={1}
+                      >
+                        {meta.etiqueta}
+                      </Text>
+                      <Text style={{ color: "#c8b277", fontWeight: "bold", flexShrink: 0 }}>
+                        ¡Completado!</Text>
                     </View>
+
                     <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                       <Text style={{ color: "#8e8e93", fontSize: 13 }}>Total guardado: <Text style={{ color: "#fff", fontWeight: "bold" }}>${meta.actual.toLocaleString("es-AR")}</Text></Text>
-                      <TouchableOpacity style={[globalStyles.botonModalEliminar, { paddingVertical: 4, paddingHorizontal: 10 }]} onPress={() => manejarEliminarMeta(meta)}>
+                      <TouchableOpacity style={[generalStyles.botonModalEliminar, { paddingVertical: 4, paddingHorizontal: 10 }]} onPress={() => manejarEliminarMeta(meta)}>
                         <Text style={{ color: "#fff", fontSize: 12 }}>Eliminar</Text>
                       </TouchableOpacity>
                     </View>
@@ -705,7 +737,9 @@ const GastoIngreso = () => {
                 ))}
               </View>
             )}
+
           </View>
+
         </ScrollView>
       </TouchableWithoutFeedback>
 
@@ -721,30 +755,31 @@ const GastoIngreso = () => {
           style={{ flex: 1 }}
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={globalStyles.capaModal}>
-              <View style={globalStyles.contenidoModal}>
+            <View style={generalStyles.capaModal}>
+              <View style={generalStyles.contenidoModal}>
 
-                <Text style={[globalStyles.tituloTarjeta, { color: "#c8b277" }]}>Editar Meta de Ahorro</Text>
+                <Text style={[generalStyles.tituloTarjeta, { color: "#c8b277" }]}>Editar Meta de Ahorro</Text>
 
                 <ScrollView showsVerticalScrollIndicator={false}>
                   {/* Nombre de la Meta */}
-                  <View style={globalStyles.formularioGrupo}>
-                    <Text style={globalStyles.labelForm}>Nombre de la Meta ({metaForm.Nombre.length}/100)</Text>
+                  <View style={generalStyles.formularioGrupo}>
+                    <Text style={generalStyles.labelForm}>Monto Objetivo ($)</Text>
                     <TextInput
-                      style={globalStyles.inputForm}
-                      value={metaForm.Nombre}
-                      maxLength={100}
-                      onChangeText={(t) => setMetaForm({ ...metaForm, Nombre: t })}
-                      placeholder="Ej: Fondo de Emergencia"
+                      style={generalStyles.inputForm}
+                      keyboardType="numeric"
+                      maxLength={15}
+                      value={metaForm.MontoObjetivo}
+                      onChangeText={(t) => setMetaForm({ ...metaForm, MontoObjetivo: formatMontoParaInput(t) })}
+                      placeholder="0,00"
                       placeholderTextColor="#666"
                     />
                   </View>
 
                   {/* Monto Actual */}
-                  <View style={globalStyles.formularioGrupo}>
-                    <Text style={globalStyles.labelForm}>Monto Actual ($)</Text>
+                  <View style={generalStyles.formularioGrupo}>
+                    <Text style={generalStyles.labelForm}>Monto Actual ($)</Text>
                     <TextInput
-                      style={globalStyles.inputForm}
+                      style={generalStyles.inputForm}
                       keyboardType="numeric"
                       maxLength={15}
                       value={metaForm.MontoGuardado}
@@ -755,10 +790,10 @@ const GastoIngreso = () => {
                   </View>
 
                   {/* Monto Objetivo */}
-                  <View style={globalStyles.formularioGrupo}>
-                    <Text style={globalStyles.labelForm}>Monto Objetivo ($)</Text>
+                  <View style={generalStyles.formularioGrupo}>
+                    <Text style={generalStyles.labelForm}>Monto Objetivo ($)</Text>
                     <TextInput
-                      style={globalStyles.inputForm}
+                      style={generalStyles.inputForm}
                       keyboardType="numeric"
                       maxLength={15}
                       value={metaForm.MontoObjetivo}
@@ -769,9 +804,9 @@ const GastoIngreso = () => {
                   </View>
 
                   {/* Fecha Inicio */}
-                  <View style={globalStyles.formularioGrupo}>
-                    <Text style={globalStyles.labelForm}>Fecha de Inicio</Text>
-                    <TouchableOpacity style={globalStyles.inputForm} onPress={() => setMostrarPickerInicio(true)}>
+                  <View style={generalStyles.formularioGrupo}>
+                    <Text style={generalStyles.labelForm}>Fecha de Inicio</Text>
+                    <TouchableOpacity style={generalStyles.inputForm} onPress={() => setMostrarPickerInicio(true)}>
                       <Text style={{ color: metaForm.FechaInicio ? "#ffffff" : "#666666", paddingVertical: 4 }}>
                         {metaForm.FechaInicio || "Seleccionar Fecha"}
                       </Text>
@@ -793,9 +828,9 @@ const GastoIngreso = () => {
                   </View>
 
                   {/* Fecha Objetivo */}
-                  <View style={globalStyles.formularioGrupo}>
-                    <Text style={globalStyles.labelForm}>Fecha Objetivo</Text>
-                    <TouchableOpacity style={globalStyles.inputForm} onPress={() => setMostrarPickerObjetivo(true)}>
+                  <View style={generalStyles.formularioGrupo}>
+                    <Text style={generalStyles.labelForm}>Fecha Objetivo</Text>
+                    <TouchableOpacity style={generalStyles.inputForm} onPress={() => setMostrarPickerObjetivo(true)}>
                       <Text style={{ color: metaForm.FechaObjetivo ? "#ffffff" : "#666666", paddingVertical: 4 }}>
                         {metaForm.FechaObjetivo || "Seleccionar Fecha"}
                       </Text>
@@ -817,13 +852,13 @@ const GastoIngreso = () => {
                   </View>
 
                   {/* Divisa */}
-                  <View style={globalStyles.formularioGrupo}>
-                    <Text style={globalStyles.labelForm}>Divisa</Text>
-                    <View style={globalStyles.inputSelectContainer}>
+                  <View style={generalStyles.formularioGrupo}>
+                    <Text style={generalStyles.labelForm}>Divisa</Text>
+                    <View style={generalStyles.inputSelectContainer}>
                       <Picker
                         selectedValue={metaForm.Divisa}
                         dropdownIconColor="#c8b277"
-                        style={globalStyles.pickerNativo}
+                        style={generalStyles.pickerNativo}
                         onValueChange={(itemValue) => setMetaForm({ ...metaForm, Divisa: itemValue })}
                       >
                         <Picker.Item label="ARS - Peso Argentino" value="1" />
@@ -834,23 +869,23 @@ const GastoIngreso = () => {
                   </View>
                 </ScrollView>
 
-                <View style={globalStyles.formularioAcciones}>
+                <View style={generalStyles.formularioAcciones}>
                   <TouchableOpacity
-                    style={[globalStyles.botonModalBase, globalStyles.botonModalEliminar]}
+                    style={[generalStyles.botonModalBase, generalStyles.botonModalEliminar]}
                     onPress={() => manejarEliminarMeta(null)}
                   >
                     <Text style={{ color: "#fff", fontWeight: "bold", fontSize: 13 }}>Eliminar</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={[globalStyles.botonModalBase, globalStyles.botonModalSecundario]}
+                    style={[generalStyles.botonModalBase, generalStyles.botonModalSecundario]}
                     onPress={() => setModalEditarAbierto(false)}
                   >
                     <Text style={{ color: "#fff", fontSize: 13 }}>Cancelar</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={[globalStyles.botonModalBase, globalStyles.botonModalPrimario]}
+                    style={[generalStyles.botonModalBase, generalStyles.botonModalPrimario]}
                     onPress={manejarGuardarMeta}
                   >
                     <Text style={{ color: "#121212", fontWeight: "bold", fontSize: 13 }}>Guardar</Text>
@@ -871,26 +906,39 @@ const GastoIngreso = () => {
         onRequestClose={() => setModalAgregarAbierto(false)}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={globalStyles.capaModal}>
-            <View style={globalStyles.contenidoModal}>
+          <View style={generalStyles.capaModal}>
+            <View style={generalStyles.contenidoModal}>
 
-              <Text style={[globalStyles.tituloTarjeta, { color: "#c8b277" }]}>Nueva Meta de Ahorro</Text>
+              <Text style={[generalStyles.tituloTarjeta, { color: "#c8b277" }]}>Nueva Meta de Ahorro</Text>
 
               {/* Los campos del formulario (mantengo tu estructura) */}
-              <View style={globalStyles.formularioGrupo}>
-                <Text style={globalStyles.labelForm}>Nombre de la Meta ({metaForm.Nombre.length}/100)</Text>
-                <TextInput style={globalStyles.inputForm} value={metaForm.Nombre} maxLength={100} onChangeText={(t) => setMetaForm({ ...metaForm, Nombre: t })} placeholder="Ej: Fondo de Emergencia" placeholderTextColor="#666" />
+              <View style={generalStyles.formularioGrupo}>
+                <Text style={generalStyles.labelForm}>Nombre de la Meta ({metaForm.Nombre.length}/100)</Text>
+                <TextInput style={generalStyles.inputForm} value={metaForm.Nombre} maxLength={100} onChangeText={(t) => setMetaForm({ ...metaForm, Nombre: t })} placeholder="Ej: Fondo de Emergencia" placeholderTextColor="#666" />
               </View>
 
-              <View style={globalStyles.formularioGrupo}>
-                <Text style={globalStyles.labelForm}>Monto Objetivo ($)</Text>
-                <TextInput style={globalStyles.inputForm} keyboardType="numeric" maxLength={15} value={metaForm.MontoObjetivo} onChangeText={(t) => setMetaForm({ ...metaForm, MontoObjetivo: formatMontoParaInput(t) })} placeholder="0,00" placeholderTextColor="#666" />
+              <View style={generalStyles.formularioGrupo}>
+                <Text style={generalStyles.labelForm}>Monto Objetivo ($)</Text>
+                <TextInput
+                  style={generalStyles.inputForm}
+                  keyboardType="numeric"
+                  maxLength={15}
+                  value={metaForm.MontoObjetivo}
+                  onChangeText={(t) => {
+                    const textoLimpio = t.replace(/[^0-9,]/g, "");
+                    const parteEntera = textoLimpio.split(",")[0];
+                    if (parteEntera.length > 9) return;
+                    setMetaForm({ ...metaForm, MontoObjetivo: formatMontoParaInput(t) });
+                  }}
+                  placeholder="0,00"
+                  placeholderTextColor="#666"
+                />
               </View>
 
               {/* Fecha Inicio */}
-              <View style={globalStyles.formularioGrupo}>
-                <Text style={globalStyles.labelForm}>Fecha de Inicio</Text>
-                <TouchableOpacity style={globalStyles.inputForm} onPress={() => setMostrarPickerInicio(true)}>
+              <View style={generalStyles.formularioGrupo}>
+                <Text style={generalStyles.labelForm}>Fecha de Inicio</Text>
+                <TouchableOpacity style={generalStyles.inputForm} onPress={() => setMostrarPickerInicio(true)}>
                   <Text style={{ color: metaForm.FechaInicio ? "#ffffff" : "#666666", paddingVertical: 4 }}>
                     {metaForm.FechaInicio || "Seleccionar Fecha"}
                   </Text>
@@ -912,9 +960,9 @@ const GastoIngreso = () => {
               </View>
 
               {/* Fecha Objetivo */}
-              <View style={globalStyles.formularioGrupo}>
-                <Text style={globalStyles.labelForm}>Fecha Objetivo</Text>
-                <TouchableOpacity style={globalStyles.inputForm} onPress={() => setMostrarPickerObjetivo(true)}>
+              <View style={generalStyles.formularioGrupo}>
+                <Text style={generalStyles.labelForm}>Fecha Objetivo</Text>
+                <TouchableOpacity style={generalStyles.inputForm} onPress={() => setMostrarPickerObjetivo(true)}>
                   <Text style={{ color: metaForm.FechaObjetivo ? "#ffffff" : "#666666", paddingVertical: 4 }}>
                     {metaForm.FechaObjetivo || "Seleccionar Fecha"}
                   </Text>
@@ -935,10 +983,10 @@ const GastoIngreso = () => {
                 )}
               </View>
 
-              <View style={globalStyles.formularioGrupo}>
-                <Text style={globalStyles.labelForm}>Divisa</Text>
-                <View style={globalStyles.inputSelectContainer}>
-                  <Picker selectedValue={metaForm.Divisa} dropdownIconColor="#c8b277" style={globalStyles.pickerNativo} onValueChange={(itemValue) => setMetaForm({ ...metaForm, Divisa: itemValue })}>
+              <View style={generalStyles.formularioGrupo}>
+                <Text style={generalStyles.labelForm}>Divisa</Text>
+                <View style={generalStyles.inputSelectContainer}>
+                  <Picker selectedValue={metaForm.Divisa} dropdownIconColor="#c8b277" style={generalStyles.pickerNativo} onValueChange={(itemValue) => setMetaForm({ ...metaForm, Divisa: itemValue })}>
                     <Picker.Item label="ARS - Peso Argentino" value="1" />
                     <Picker.Item label="USD - Dólar Estadounidense" value="2" />
                     <Picker.Item label="EUR - Euro" value="3" />
@@ -947,16 +995,16 @@ const GastoIngreso = () => {
               </View>
 
               {/* CONTENEDOR DE ACCIONES CORREGIDO */}
-              <View style={globalStyles.formularioAcciones}>
+              <View style={generalStyles.formularioAcciones}>
                 <TouchableOpacity
-                  style={[globalStyles.botonModalBase, globalStyles.botonModalSecundario]}
+                  style={[generalStyles.botonModalBase, generalStyles.botonModalSecundario]}
                   onPress={() => setModalAgregarAbierto(false)}
                 >
                   <Text style={{ color: "#fff", fontWeight: "bold" }}>Cancelar</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={[globalStyles.botonModalBase, globalStyles.botonModalPrimario]}
+                  style={[generalStyles.botonModalBase, generalStyles.botonModalPrimario]}
                   onPress={manejarGuardarMeta}
                 >
                   <Text style={{ color: "#121212", fontWeight: "bold" }}>Guardar</Text>
@@ -970,9 +1018,9 @@ const GastoIngreso = () => {
 
       {/* MODAL CONFIRMAR ELIMINAR */}
       <Modal visible={modalConfirmarEliminarAbierto} animationType="fade" transparent={true} onRequestClose={() => setModalConfirmarEliminarAbierto(false)}>
-        <View style={globalStyles.capaModal}>
-          <View style={[globalStyles.contenidoModal, { maxWidth: '85%', paddingVertical: 24, paddingHorizontal: 20 }]}>
-            <Text style={[globalStyles.tituloTarjeta, { color: "#ffffff", textAlign: "center", marginBottom: 12, fontSize: 18 }]}>
+        <View style={generalStyles.capaModal}>
+          <View style={[generalStyles.contenidoModal, { maxWidth: '85%', paddingVertical: 24, paddingHorizontal: 20 }]}>
+            <Text style={[generalStyles.tituloTarjeta, { color: "#ffffff", textAlign: "center", marginBottom: 12, fontSize: 18 }]}>
               Confirmar Eliminación
             </Text>
             <Text style={{ color: "#a1a1a6", fontSize: 14, textAlign: "center", marginBottom: 24, lineHeight: 20 }}>
@@ -980,7 +1028,7 @@ const GastoIngreso = () => {
             </Text>
             <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%" }}>
               <TouchableOpacity
-                style={[globalStyles.botonModalSecundario, { flex: 1, marginRight: 8, paddingVertical: 12 }]}
+                style={[generalStyles.botonModalSecundario, { flex: 1, marginRight: 8, paddingVertical: 12 }]}
                 onPress={() => {
                   setModalConfirmarEliminarAbierto(false);
                   setMetaAEliminarTemporal(null);
@@ -989,7 +1037,7 @@ const GastoIngreso = () => {
                 <Text style={{ color: "#007aff", fontWeight: "600", fontSize: 15, textAlign: "center" }}>CANCELAR</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[globalStyles.botonModalEliminar, { flex: 1, marginLeft: 8, paddingVertical: 12, backgroundColor: "transparent" }]}
+                style={[generalStyles.botonModalEliminar, { flex: 1, marginLeft: 8, paddingVertical: 12, backgroundColor: "transparent" }]}
                 onPress={ejecutarEliminacionConfirmada}
               >
                 <Text style={{ color: "#ff453a", fontWeight: "bold", fontSize: 15, textAlign: "center" }}>ELIMINAR</Text>
@@ -998,20 +1046,10 @@ const GastoIngreso = () => {
           </View>
         </View>
       </Modal>
+
     </View>
 
   );
 };
-const styles = StyleSheet.create({
-  overlayMenu: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1000, // Esto asegura que el menú esté encima de todo
-    backgroundColor: 'rgba(0,0,0,0.5)', // Fondo semitransparente oscuro
-  },
-});
 
 export default GastoIngreso;
