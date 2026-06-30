@@ -17,7 +17,7 @@ const LoginScreen = () => {
   const [ocultarPassword, setOcultarPassword] = useState(true);
 
   const abrirWeb = async () => {
-    const url = "https://tu-pagina-web.com";
+    const url = "https://finanzarc.vercel.app/crear-cuenta";
     const soportado = await Linking.canOpenURL(url);
     if (soportado) {
       await Linking.openURL(url);

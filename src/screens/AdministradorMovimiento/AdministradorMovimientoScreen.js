@@ -20,7 +20,7 @@ import { obtenerTasas } from '../../services/api'; // Asegúrate de tener esta f
 
 // NOTA PARA EXPO: Si pruebas en un emulador Android, recuerda que localhost a veces
 // debe cambiarse por 10.0.2.2 o tu IP local (ej. 192.168.x.x) para que conecte al backend de .NET.
-const API_BASE_URL = "http://192.168.1.126:45457/api";
+const API_BASE_URL = "http://192.168.100.3:45455/api";
 
 const AdministradorMovimientos = () => {
   // ==========================================
@@ -295,37 +295,72 @@ const AdministradorMovimientos = () => {
     setPickerConfig({ visible: true, titulo, data, valorActual, onSelect });
   };
 
-  const SelectorCustom = () => (
-    <Modal visible={pickerConfig.visible} transparent animationType="slide">
-      <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setPickerConfig({ ...pickerConfig, visible: false })}>
-        <View style={[styles.pickerContainer, { borderTopColor: colorPrimario, borderTopWidth: 4 }]}>
-          <Text style={styles.pickerTitle}>{pickerConfig.titulo}</Text>
-          <FlatList
-            data={pickerConfig.data}
-            keyExtractor={(item, idx) => idx.toString()}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => {
-              const isSelected = pickerConfig.valorActual === item.id;
-              return (
-                <TouchableOpacity
-                  style={[styles.pickerItem, isSelected && { backgroundColor: 'rgba(255,255,255,0.08)' }]}
-                  onPress={() => {
-                    pickerConfig.onSelect(item.id);
-                    setPickerConfig({ ...pickerConfig, visible: false });
-                  }}
-                >
-                  <Text style={[styles.pickerItemText, isSelected && { color: colorPrimario, fontWeight: '700' }]}>
-                    {item.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            }}
-          />
-        </View>
-      </TouchableOpacity>
-    </Modal>
-  );
+const SelectorCustom = () => (
+  <Modal visible={pickerConfig.visible} transparent animationType="slide">
+    <TouchableOpacity
+      style={styles.modalOverlay}
+      activeOpacity={1}
+      onPress={() =>
+        setPickerConfig({ ...pickerConfig, visible: false })
+      }
+    >
+      <View
+        style={[
+          styles.pickerContainer,
+          {
+            borderTopColor: colorPrimario,
+            borderTopWidth: 4,
+          },
+        ]}
+      >
+        <Text style={styles.pickerTitle}>
+          {pickerConfig.titulo}
+        </Text>
 
+        <FlatList
+          data={pickerConfig.data}
+          keyExtractor={(item, idx) => idx.toString()}
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) => {
+            const isSelected =
+              pickerConfig.valorActual === item.id;
+
+            return (
+              <TouchableOpacity
+                style={[
+                  styles.pickerItem,
+                  isSelected && {
+                    backgroundColor:
+                      "rgba(255,255,255,0.08)",
+                  },
+                ]}
+                onPress={() => {
+                  pickerConfig.onSelect(item.id);
+                  setPickerConfig({
+                    ...pickerConfig,
+                    visible: false,
+                  });
+                }}
+              >
+                <Text
+                  style={[
+                    styles.pickerItemText,
+                    isSelected && {
+                      color: colorPrimario,
+                      fontWeight: "700",
+                    },
+                  ]}
+                >
+                  {item.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          }}
+        />
+      </View>
+    </TouchableOpacity>
+  </Modal>
+);
   const renderItemLista = ({ item }) => {
     const esIngreso = tipoActual === 'ingreso';
     const monto = esIngreso ? item.MontoIngreso : item.MontoGasto;
@@ -515,6 +550,7 @@ const AdministradorMovimientos = () => {
                 </TouchableOpacity>
               </View>
             </ScrollView>
+            <SelectorCustom />
           </View>
         </KeyboardAvoidingView>
       </Modal>
@@ -569,9 +605,6 @@ const AdministradorMovimientos = () => {
           </View>
         </View>
       </Modal>
-
-      {/* Renderizado del Picker Customizado */}
-      <SelectorCustom />
     </SafeAreaView>
   );
 };

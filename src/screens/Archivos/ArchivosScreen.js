@@ -13,8 +13,8 @@ import { globalStyles } from "../../styles/styles";
 import { archivosStyles } from "./ArchivosStyles";
 
 
-const API_BASE_URL = "http://192.168.1.126:45457/api";
-const SERVER_HOST = "http://192.168.1.126:45457"; 
+const API_BASE_URL = "http://192.168.100.3:45455/api";
+const SERVER_HOST = "http://192.168.100.3:45455"; 
 
 
 const { width } = Dimensions.get("window");
