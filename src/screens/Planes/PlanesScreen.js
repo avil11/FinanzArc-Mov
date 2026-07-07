@@ -1,19 +1,12 @@
 import React, { useState, useEffect, memo } from "react";
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
-  ActivityIndicator, 
-  Alert 
-} from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// Tu IP local y puerto
-const API_BASE_URL = "http://192.168.1.126:45457/api"; 
+const API_BASE_URL = "http://192.168.1.126:45457/api";
 
-// 1. FUNCIÓN AUXILIAR (Switch Case) - Ubicada globalmente para que no haya errores de scope
+import { planesStyles } from "./PlanesStyles";
+
+
 const obtenerNombrePlan = (idRol) => {
   switch (Number(idRol)) {
     case 1:
@@ -29,25 +22,25 @@ const obtenerNombrePlan = (idRol) => {
   }
 };
 
-// 2. COMPONENTE PARA VIÑETAS
+
 const DetallesLista = memo(({ texto }) => {
   if (!texto || typeof texto !== "string" || texto.trim() === "") {
-    return <Text style={styles.detalleVacio}>Sin descripción disponible.</Text>;
+    return <Text style={planesStyles.detalleVacio}>Sin descripción disponible.</Text>;
   }
   const lineas = texto.split("\n").map(line => line.trim()).filter(line => line.length > 0);
-  if (lineas.length === 0) return <Text style={styles.detalleVacio}>Sin descripción disponible.</Text>;
+  if (lineas.length === 0) return <Text style={planesStyles.detalleVacio}>Sin descripción disponible.</Text>;
 
   return (
-    <View style={styles.listaDetalles}>
+    <View style={planesStyles.listaDetalles}>
       {lineas.map((linea, index) => {
         if (linea.startsWith("+")) {
-          return <Text key={index} style={[styles.itemDetalle, styles.detalleIncluido]}>✅ {linea.substring(1).trim()}</Text>;
+          return <Text key={index} style={[planesStyles.itemDetalle, planesStyles.detalleIncluido]}>✅ {linea.substring(1).trim()}</Text>;
         } else if (linea.startsWith("-")) {
-          return <Text key={index} style={[styles.itemDetalle, styles.detalleExcluido]}>❌ {linea.substring(1).trim()}</Text>;
+          return <Text key={index} style={[planesStyles.itemDetalle, planesStyles.detalleExcluido]}>❌ {linea.substring(1).trim()}</Text>;
         } else if (linea.startsWith(">")) {
-          return <Text key={index} style={[styles.itemDetalle, styles.detalleDestacado]}>✨ {linea.substring(1).trim()}</Text>;
+          return <Text key={index} style={[planesStyles.itemDetalle, planesStyles.detalleDestacado]}>✨ {linea.substring(1).trim()}</Text>;
         } else {
-          return <Text key={index} style={[styles.itemDetalle, styles.detalleNormal]}>• {linea}</Text>;
+          return <Text key={index} style={[planesStyles.itemDetalle, planesStyles.detalleNormal]}>• {linea}</Text>;
         }
       })}
     </View>
@@ -69,10 +62,10 @@ const PlanesScreen = () => {
   const cargarDatos = async () => {
     try {
       setCargando(true);
-      const token = await AsyncStorage.getItem("Token"); 
+      const token = await AsyncStorage.getItem("Token");
 
-      const resUsuario = await fetch(`${API_BASE_URL}/Usuarios/ByToken`, { 
-        headers: { "Authorization": `Bearer ${token}` } 
+      const resUsuario = await fetch(`${API_BASE_URL}/Usuarios/ByToken`, {
+        headers: { "Authorization": `Bearer ${token}` }
       });
       if (resUsuario.ok) {
         const dataUser = await resUsuario.json();
@@ -144,54 +137,53 @@ const PlanesScreen = () => {
       [
         {
           text: "Cancelar",
-          style: "cancel", 
+          style: "cancel",
         },
         {
           text: "Sí, activar plan",
-          onPress: () => simularSuscripcionPlan(plan), 
+          onPress: () => simularSuscripcionPlan(plan),
         },
       ],
-      { cancelable: true } 
+      { cancelable: true }
     );
-  };  
+  };
 
   if (cargando) {
     return (
-      <View style={styles.centerLoading}>
+      <View style={planesStyles.centerLoading}>
         <ActivityIndicator size="large" color="#c8b277" />
-        <Text style={styles.textoCargando}>Sincronizando planes...</Text>
+        <Text style={planesStyles.textoCargando}>Sincronizando planes...</Text>
       </View>
     );
   }
-
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
-      
+    <ScrollView style={planesStyles.container} contentContainerStyle={{ paddingBottom: 40 }}>
+
       {usuario && (
-        <View style={styles.bannerUsuario}>
-          <Text style={styles.textoBanner}>
-            Hola <Text style={{fontWeight: 'bold', color: '#fff'}}>{usuario.Nombre}</Text> • Plan Actual: <Text style={styles.rolResaltado}>{obtenerNombrePlan(usuario.IdRol)}</Text>
+        <View style={planesStyles.bannerUsuario}>
+          <Text style={planesStyles.textoBanner}>
+            Hola <Text style={{ fontWeight: 'bold', color: '#fff' }}>{usuario.Nombre}</Text> • Plan Actual: <Text style={planesStyles.rolResaltado}>{obtenerNombrePlan(usuario.IdRol)}</Text>
           </Text>
         </View>
       )}
 
-      <Text style={styles.introduccion}>
+      <Text style={planesStyles.introduccion}>
         Centralice su gestión financiera con nuestros planes creados para usted.
       </Text>
 
-      <View style={styles.selectorSuscripcion}>
+      <View style={planesStyles.selectorSuscripcion}>
         <TouchableOpacity
-          style={[styles.tabBoton, tipoSuscripcion === 1 && styles.tabActivo]}
+          style={[planesStyles.tabBoton, tipoSuscripcion === 1 && planesStyles.tabActivo]}
           onPress={() => setTipoSuscripcion(1)}
         >
-          <Text style={[styles.tabTexto, tipoSuscripcion === 1 && styles.tabTextoActivo]}>Mensual</Text>
+          <Text style={[planesStyles.tabTexto, tipoSuscripcion === 1 && planesStyles.tabTextoActivo]}>Mensual</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.tabBoton, tipoSuscripcion === 2 && styles.tabActivo]}
+          style={[planesStyles.tabBoton, tipoSuscripcion === 2 && planesStyles.tabActivo]}
           onPress={() => setTipoSuscripcion(2)}
         >
-          <Text style={[styles.tabTexto, tipoSuscripcion === 2 && styles.tabTextoActivo]}>Anual</Text>
+          <Text style={[planesStyles.tabTexto, tipoSuscripcion === 2 && planesStyles.tabTextoActivo]}>Anual</Text>
         </TouchableOpacity>
       </View>
 
@@ -200,29 +192,29 @@ const PlanesScreen = () => {
         const esPlanActivoActual = usuario?.IdRol === p.IdRol;
 
         return (
-          <View key={p.IdPlan} style={[styles.tarjetaPlan, esPlanActivoActual && styles.tarjetaActiva]}>
-            
-            <View style={styles.contenidoSuperior}>
+          <View key={p.IdPlan} style={[planesStyles.tarjetaPlan, esPlanActivoActual && planesStyles.tarjetaActiva]}>
+
+            <View style={planesStyles.contenidoSuperior}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
-                <Text style={styles.badgeSuscripcion}>
+                <Text style={planesStyles.badgeSuscripcion}>
                   {Number(p.IdTipoSuscripcion) === 1 ? "Mensual" : "Anual"}
                 </Text>
                 {esPlanActivoActual && (
-                  <Text style={styles.badgePlanActual}>Plan Activo</Text>
+                  <Text style={planesStyles.badgePlanActual}>Plan Activo</Text>
                 )}
               </View>
 
-              <Text style={styles.planNombre}>{p.Nombre || `Plan Nivel ${p.IdRol}`}</Text>
-              <Text style={styles.planPrecio}>${p.Precio} ARS</Text>
+              <Text style={planesStyles.planNombre}>{p.Nombre || `Plan Nivel ${p.IdRol}`}</Text>
+              <Text style={planesStyles.planPrecio}>${p.Precio} ARS</Text>
 
               <DetallesLista texto={textoDetalle} />
             </View>
 
-            <View style={styles.contenedorBoton}>
+            <View style={planesStyles.contenedorBoton}>
               <TouchableOpacity
                 style={[
-                  styles.btnPlan, 
-                  esPlanActivoActual ? styles.btnDeshabilitado : styles.btnPlanSuscribir
+                  planesStyles.btnPlan,
+                  esPlanActivoActual ? planesStyles.btnDeshabilitado : planesStyles.btnPlanSuscribir
                 ]}
                 disabled={procesandoAccion || esPlanActivoActual}
                 onPress={() => confirmarCompra(p)}
@@ -230,7 +222,7 @@ const PlanesScreen = () => {
                 {procesandoAccion ? (
                   <ActivityIndicator size="small" color="#121212" />
                 ) : (
-                  <Text style={[styles.btnTexto, esPlanActivoActual && { color: '#666' }]}>
+                  <Text style={[planesStyles.btnTexto, esPlanActivoActual && { color: '#666' }]}>
                     {esPlanActivoActual ? "Tu Plan Actual" : "Activar este Plan"}
                   </Text>
                 )}
@@ -244,170 +236,5 @@ const PlanesScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#121212",
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  centerLoading: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#121212",
-  },
-  textoCargando: {
-    color: "#c8b277",
-    marginTop: 10,
-    fontSize: 16,
-  },
-  bannerUsuario: {
-    backgroundColor: "#1e1e1f",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: "#c8b277",
-    alignItems: "center"
-  },
-  textoBanner: {
-    color: "#aaa",
-    fontSize: 13,
-  },
-  rolResaltado: {
-    color: "#c8b277",
-    fontWeight: "bold"
-  },
-  introduccion: {
-    color: "#aaa",
-    fontSize: 14,
-    textAlign: "center",
-    marginBottom: 25,
-    lineHeight: 20,
-  },
-  selectorSuscripcion: {
-    flexDirection: "row",
-    backgroundColor: "#1e1e1f",
-    borderRadius: 8,
-    padding: 4,
-    marginBottom: 30,
-    borderWidth: 1,
-    borderColor: "#333",
-  },
-  tabBoton: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: "center",
-    borderRadius: 6,
-  },
-  tabActivo: {
-    backgroundColor: "#c8b277",
-  },
-  tabTexto: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  tabTextoActivo: {
-    color: "#121212",
-    fontWeight: "700",
-  },
-  tarjetaPlan: {
-    backgroundColor: "#1e1e1f",
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 25,
-    borderWidth: 1,
-    borderColor: "#333",
-  },
-  tarjetaActiva: {
-    borderColor: "#c8b277",
-    borderWidth: 1.5,
-  },
-  contenidoSuperior: {
-    flex: 1,
-  },
-  badgeSuscripcion: {
-    backgroundColor: "#333",
-    color: "#c8b277",
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 4,
-    fontSize: 12,
-    fontWeight: "bold",
-  },
-  badgePlanActual: {
-    backgroundColor: "#c8b277",
-    color: "#121212",
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 4,
-    fontSize: 11,
-    fontWeight: "bold",
-  },
-  planNombre: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 5,
-  },
-  planPrecio: {
-    color: "#c8b277",
-    fontSize: 26,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  listaDetalles: {
-    marginVertical: 15,
-  },
-  itemDetalle: {
-    fontSize: 14,
-    lineHeight: 22,
-    marginBottom: 8,
-  },
-  detalleIncluido: {
-    color: "#e0e0e0",
-  },
-  detalleExcluido: {
-    color: "#888",
-    textDecorationLine: "line-through",
-  },
-  detalleDestacado: {
-    color: "#c8b277",
-    fontWeight: "600",
-  },
-  detalleNormal: {
-    color: "#ccc",
-  },
-  detalleVacio: {
-    color: "#666",
-    fontStyle: "italic",
-    textAlign: "center",
-  },
-  contenedorBoton: {
-    marginTop: 15,
-    minHeight: 48,
-  },
-  btnPlan: {
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  btnPlanSuscribir: {
-    backgroundColor: "#c8b277",
-  },
-  btnDeshabilitado: {
-    backgroundColor: "#2d2d2d",
-  },
-  btnTexto: {
-    color: "#121212",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-});
 
 export default PlanesScreen;

@@ -1,80 +1,48 @@
 import { StyleSheet } from "react-native";
 
 export const generalStyles = StyleSheet.create({
-    overlayMenu: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 1000, // Esto asegura que el menú esté encima de todo
-        backgroundColor: 'rgba(0,0,0,0.5)', // Fondo semitransparente oscuro
-    },
-    contenedorGraficoPie: { width: 130, height: 130, justifyContent: "center", alignItems: "center" },
-    contenedorPrincipal: { flex: 1, padding: 20 },
-    seccionEncabezado: { marginBottom: 24 },
-    tituloPrincipal: { fontSize: 24, fontWeight: "bold", color: "#c8b277", marginBottom: 8 },
-    descripcionEncabezado: { color: "#8e8e93", fontSize: 14, lineHeight: 20, marginBottom: 4 },
-    cotizacionesTexto: { color: "#c8b277", fontSize: 14, fontWeight: "bold", marginTop: 8, fontStyle: "italic" },
-    tarjetaGeneral: { backgroundColor: "#1e1e1f", borderRadius: 16, padding: 20, marginBottom: 20, borderWidth: 1, borderColor: "rgba(200,178,119,0.2)" },
-    tituloTarjeta: { fontSize: 18, fontWeight: "bold", color: "#ffffff", marginBottom: 16 },
-    graficoConLeyenda: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-    leyendaGrafico: { flex: 1, marginLeft: 20 },
-
-    // En styles.js
-    itemLeyenda: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginBottom: 8,
-        justifyContent: "space-between",
-        width: '100%' // Asegúrate de que el contenedor ocupe el ancho
-    },
-    leyendaTextoContainer: {
-        flex: 1, // Permite que crezca
-        marginRight: 10, // Un poco de aire antes del monto
-        overflow: 'hidden' // Esencial para el truncamiento
-    },
-
-    circuloColor: { width: 10, height: 10, borderRadius: 5, marginRight: 8 },
-
-
-
-    leyendaTexto: { color: "#ffffff", fontSize: 12, flexShrink: 1 },
-    valorMontoIngreso: { color: "#34c759", fontSize: 12, fontWeight: "bold", flexShrink: 0 },
-    valorMontoGasto: { color: "#ff4b4b", fontSize: 12, fontWeight: "bold", flexShrink: 0 },
-
-    avisoVacio: { alignItems: "center", paddingVertical: 32, paddingHorizontal: 20, backgroundColor: "rgba(200, 178, 119, 0.03)", borderRadius: 16, borderWidth: 1, borderColor: "rgba(200, 178, 119, 0.1)", borderStyle: "dashed" },
-    iconoPlaceholder: { fontSize: 40, marginBottom: 12, opacity: 0.8 },
-    mensajeVacio: { color: "#ffffff", fontSize: 16, fontWeight: "bold", marginBottom: 6 },
-    sugerenciaVacio: { color: "#8e8e93", fontSize: 13, textAlign: 'center' },
-    botonComparativa: { backgroundColor: "#c8b277", paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, flex: 1, maxWidth: "40%", alignItems: "center" },
-    botonComparativaTexto: { color: "#121212", fontWeight: "bold", fontSize: 14 },
-    botonModalEliminar: { backgroundColor: "#ff4b4b" },
-    infoLimitesPlan: { backgroundColor: "#1e1e1f", padding: 16, borderRadius: 12, marginBottom: 16, borderWidth: 1, borderColor: "rgba(200,178,119,0.1)" },
-    tarjetaAhorroItem: { backgroundColor: "#1e1e1f", borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: "rgba(200,178,119,0.2)" },
-    // En tu styles.js
-    filaProgreso: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginBottom: 8,
-        width: '100%', // Agrega esto para forzar que respete el ancho de la tarjeta
-        alignItems: 'center' // Centra verticalmente el texto y el porcentaje
-    },
-    pistaBarra: { height: 6, backgroundColor: "#2c2c2e", borderRadius: 3, marginBottom: 8, overflow: "hidden" },
-    rellenoBarra: { height: "100%", backgroundColor: "#c8b277", borderRadius: 3 },
-    textoMontoProgreso: { color: "#8e8e93", fontSize: 12, marginBottom: 12 },
-    botonEditarAhorro: { alignSelf: "flex-end", paddingVertical: 6, paddingHorizontal: 12, backgroundColor: "#2c2c2e", borderRadius: 6 },
-    botonEditarAhorroTexto: { color: "#c8b277", fontSize: 12, fontWeight: "bold" },
-    tarjetaLogro: { backgroundColor: "#1e1e1f", borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: "#c8b277" },
-    capaModal: { flex: 1, backgroundColor: "rgba(0,0,0,0.8)", justifyContent: "center", alignItems: "center", padding: 20 },
-    contenidoModal: { backgroundColor: "#1e1e1f", width: "100%", borderRadius: 16, padding: 24, borderWidth: 1, borderColor: "rgba(200,178,119,0.3)" },
-    formularioGrupo: { marginBottom: 16 },
-    labelForm: { color: "#ffffff", fontSize: 13, marginBottom: 6, fontWeight: "600" },
-    inputForm: { backgroundColor: "#2c2c2e", borderRadius: 8, padding: 12, color: "#ffffff", fontSize: 15 },
-    pickerNativo: { color: "#ffffff", backgroundColor: "#2c2c2e" },
-    inputSelectContainer: { backgroundColor: "#2c2c2e", borderRadius: 8, overflow: "hidden" },
-    formularioAcciones: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 20, paddingHorizontal: 5 },
-    botonModalBase: { flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center', minHeight: 48 },
-    botonModalSecundario: { backgroundColor: "#2c2c2e" },
-    botonModalPrimario: { backgroundColor: "#c8b277" },
-})
+  overlayMenu: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000, backgroundColor: 'rgba(0,0,0,0.5)' },
+  contenedorGraficoPie: { width: 130, height: 130, justifyContent: "center", alignItems: "center" },
+  contenedorPrincipal: { flex: 1, padding: 20 },
+  seccionEncabezado: { marginBottom: 24 },
+  tituloPrincipal: { fontSize: 24, fontWeight: "bold", color: "#c8b277", marginBottom: 8 },
+  descripcionEncabezado: { color: "#8e8e93", fontSize: 14, lineHeight: 20, marginBottom: 4 },
+  cotizacionesTexto: { color: "#c8b277", fontSize: 14, fontWeight: "bold", marginTop: 8, fontStyle: "italic" },
+  tarjetaGeneral: { backgroundColor: "#1e1e1f", borderRadius: 16, padding: 20, marginBottom: 20, borderWidth: 1, borderColor: "rgba(200,178,119,0.2)" },
+  tituloTarjeta: { fontSize: 18, fontWeight: "bold", color: "#ffffff", marginBottom: 16 },
+  graficoConLeyenda: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  leyendaGrafico: { flex: 1, marginLeft: 20 },
+  itemLeyenda: { flexDirection: "row", alignItems: "center", marginBottom: 8, justifyContent: "space-between", width: '100%' },
+  leyendaTextoContainer: { flex: 1, marginRight: 10, overflow: 'hidden' },
+  circuloColor: { width: 10, height: 10, borderRadius: 5, marginRight: 8 },
+  leyendaTexto: { color: "#ffffff", fontSize: 12, flexShrink: 1 },
+  valorMontoIngreso: { color: "#34c759", fontSize: 12, fontWeight: "bold", flexShrink: 0 },
+  valorMontoGasto: { color: "#ff4b4b", fontSize: 12, fontWeight: "bold", flexShrink: 0 },
+  avisoVacio: { alignItems: "center", paddingVertical: 32, paddingHorizontal: 20, backgroundColor: "rgba(200, 178, 119, 0.03)", borderRadius: 16, borderWidth: 1, borderColor: "rgba(200, 178, 119, 0.1)", borderStyle: "dashed" },
+  iconoPlaceholder: { fontSize: 40, marginBottom: 12, opacity: 0.8 },
+  mensajeVacio: { color: "#ffffff", fontSize: 16, fontWeight: "bold", marginBottom: 6 },
+  sugerenciaVacio: { color: "#8e8e93", fontSize: 13, textAlign: 'center' },
+  botonComparativa: { backgroundColor: "#c8b277", paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, flex: 1, maxWidth: "40%", alignItems: "center" },
+  botonComparativaTexto: { color: "#121212", fontWeight: "bold", fontSize: 14 },
+  botonModalEliminar: { backgroundColor: "#ff4b4b" },
+  infoLimitesPlan: { backgroundColor: "#1e1e1f", padding: 16, borderRadius: 12, marginBottom: 16, borderWidth: 1, borderColor: "rgba(200,178,119,0.1)" },
+  tarjetaAhorroItem: { backgroundColor: "#1e1e1f", borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: "rgba(200,178,119,0.2)" },
+  filaProgreso: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8, width: '100%', alignItems: 'center' },
+  pistaBarra: { height: 6, backgroundColor: "#2c2c2e", borderRadius: 3, marginBottom: 8, overflow: "hidden" },
+  rellenoBarra: { height: "100%", backgroundColor: "#c8b277", borderRadius: 3 },
+  textoMontoProgreso: { color: "#8e8e93", fontSize: 12, marginBottom: 12 },
+  botonEditarAhorro: { alignSelf: "flex-end", paddingVertical: 6, paddingHorizontal: 12, backgroundColor: "#2c2c2e", borderRadius: 6 },
+  botonEditarAhorroTexto: { color: "#c8b277", fontSize: 12, fontWeight: "bold" },
+  tarjetaLogro: { backgroundColor: "#1e1e1f", borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: "#c8b277" },
+  capaModal: { flex: 1, backgroundColor: "rgba(0,0,0,0.8)", justifyContent: "center", alignItems: "center", padding: 20 },
+  contenidoModal: { backgroundColor: "#1e1e1f", width: "100%", borderRadius: 16, padding: 24, borderWidth: 1, borderColor: "rgba(200,178,119,0.3)" },
+  formularioGrupo: { marginBottom: 16 },
+  labelForm: { color: "#ffffff", fontSize: 13, marginBottom: 6, fontWeight: "600" },
+  inputForm: { backgroundColor: "#2c2c2e", borderRadius: 8, padding: 12, color: "#ffffff", fontSize: 15 },
+  pickerNativo: { color: "#ffffff", backgroundColor: "#2c2c2e" },
+  inputSelectContainer: { backgroundColor: "#2c2c2e", borderRadius: 8, overflow: "hidden" },
+  formularioAcciones: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 20, paddingHorizontal: 5 },
+  botonModalBase: { flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center', minHeight: 48 },
+  botonModalSecundario: { backgroundColor: "#2c2c2e" },
+  botonModalPrimario: { backgroundColor: "#c8b277" }
+});

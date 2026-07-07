@@ -13,11 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import Navbar from "../../components/Navbar";
 import MenuLateral from "../../components/MenuLateral"; // Ajusta la ruta según donde lo hayas guardado
-
-
 import { API_BASE_URL, API_ENDPOINTS } from "../../services/api";
-
-import { globalStyles } from "../../styles/styles";
 
 import { generalStyles } from "./GeneralStyles";
 

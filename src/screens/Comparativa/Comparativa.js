@@ -3,13 +3,12 @@ import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Dimensions, Touc
 import { PieChart } from 'react-native-chart-kit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE_URL = "http://192.168.100.3:45455/api"; 
+const API_BASE_URL = "http://192.168.1.126:45457/api"; 
 const screenWidth = Dimensions.get("window").width;
 
 const ComparativaScreen = () => {
     const [datos, setDatos] = useState({ ingresos: [], gastos: [] });
     const [cargando, setCargando] = useState(true);
-
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -27,12 +26,10 @@ const ComparativaScreen = () => {
         };
         fetchData();
     }, []);
-
     const chartData = [
         { name: "Ingresos", population: datos.ingresos.length, color: "#4caf50", legendFontColor: "#fff" },
         { name: "Gastos", population: datos.gastos.length, color: "#ff5252", legendFontColor: "#fff" }
     ];
-
     if (cargando) return <View style={styles.center}><ActivityIndicator size="large" color="#c8b277" /></View>;
 
     return (

@@ -5,7 +5,6 @@ import { API_BASE_URL, API_ENDPOINTS } from "../../services/api";
 import { authStorage } from "../../services/auth";
 
 // IMPORTAMOS LOS ESTILOS GLOBALES
-import { globalStyles } from "../../styles/styles";
 import { loginStyles } from './LoginStyles';
 
 const LoginScreen = () => {
@@ -25,7 +24,6 @@ const LoginScreen = () => {
       console.log("No se puede abrir la URL: " + url);
     }
   };
-
   const manejarLogin = async () => {
     if (!NombreUsuario.trim() || !passwordHash.trim()) {
       setErrorMensaje("Por favor, rellene todos los campos requeridos.");
@@ -48,14 +46,12 @@ const LoginScreen = () => {
 
       const data = await respuesta.json();
 
-      // 🔐 ALMACENAMIENTO SEGURO DEL ECOSISTEMA DE AUTENTICACIÓN
       await authStorage.setItem("Token", data.Token);
       await authStorage.setItem("Nombre", data.Nombre || "Usuario");
       await authStorage.setItem("Apellido", data.Apellido || "");
 
       const uid = data.idUsuario ?? data.IdUsuario;
       if (uid !== undefined && uid !== null) {
-        // IMPORTANTE: Usa la importación directa de AsyncStorage para evitar el problema de 'undefined'
         await AsyncStorage.setItem("IdUsuario", uid.toString());
         console.log("IdUsuario guardado correctamente:", uid);
       } else {
@@ -70,9 +66,7 @@ const LoginScreen = () => {
     }
   };
 
-
   return (
-    // CAMBIO CLAVE: loginStyles en lugar de globalStyles
     <View style={loginStyles.loginContainer}>
       <View style={loginStyles.loginCard}>
         <Text style={loginStyles.loginLogo}>FinanzArc</Text>

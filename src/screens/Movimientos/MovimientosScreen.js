@@ -1,19 +1,17 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { View, Text, ActivityIndicator, FlatList, TextInput, Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { globalStyles } from "../../styles/styles"; // <-- IMPORTACIÓN GLOBAL
 import { movimientoStyles } from "./MovimientoStyles";
 
 const API_BASE_URL = "http://192.168.1.126:45457/api";
 
-// Diccionario de divisas basado en tu API
 const MAPA_DIVISAS = {
   1: { simbolo: "$", codigo: "ARS" },
   2: { simbolo: "U$D", codigo: "USD" },
   3: { simbolo: "€", codigo: "EUR" }
 };
 
-// Función reutilizable de normalización
+
 const normalizarMovimiento = (item, tipoOrigen) => {
   const id =
     item.id ??
@@ -61,7 +59,7 @@ const normalizarMovimiento = (item, tipoOrigen) => {
   const monto = Number(montoBruto) || 0;
 
   // CAPTURAMOS LA DIVISA
-  const idDivisa = item.idDivisa ?? item.IdDivisa ?? 1; // Por defecto 1 (ARS) si no viene
+  const idDivisa = item.idDivisa ?? item.IdDivisa ?? 1; 
   const divisaInfo = MAPA_DIVISAS[idDivisa] || MAPA_DIVISAS[1];
 
   const tipo = (tipoOrigen === "Ingreso" || tipoOrigen === "HistorialIngreso") ? "ingreso" : "gasto";
@@ -73,8 +71,8 @@ const normalizarMovimiento = (item, tipoOrigen) => {
     monto,
     tipo,
     origen: tipoOrigen,
-    simboloDivisa: divisaInfo.simbolo, // <-- Guardamos el símbolo ($, U$D, €)
-    codigoDivisa: divisaInfo.codigo    // <-- Guardamos el código (ARS, USD, EUR)
+    simboloDivisa: divisaInfo.simbolo, 
+    codigoDivisa: divisaInfo.codigo   
   };
 };
 
@@ -105,7 +103,7 @@ const MovimientosScreen = () => {
 
         const authHeaders = { "Authorization": `Bearer ${token}` };
 
-        // Helper interno para rechazar la promesa de un endpoint individual si el HTTP da error
+
         const fetchEndpoint = (endpoint) =>
           fetch(`${API_BASE_URL}${endpoint}`, { headers: authHeaders })
             .then(r => r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`));
@@ -127,7 +125,7 @@ const MovimientosScreen = () => {
         console.log("HistorialIngreso:", historialIngresosResponse);
         console.log("HistorialGasto:", historialGastosResponse);
 
-        // Procesar cada respuesta (si falló, loguea silenciosamente y devuelve array vacío)
+
         const extraerDatos = (resultado, origen) => {
           if (resultado.status === 'fulfilled' && Array.isArray(resultado.value)) {
             return resultado.value.map(item => normalizarMovimiento(item, origen));
@@ -143,7 +141,6 @@ const MovimientosScreen = () => {
         const historialIngresos = extraerDatos(historialIngresosResponse, "HistorialIngreso");
         const historialGastos = extraerDatos(historialGastosResponse, "HistorialGasto");
 
-        // Unificación
         const todosMovimientos = [
           ...ingresos,
           ...gastos,
@@ -151,10 +148,9 @@ const MovimientosScreen = () => {
           ...historialGastos
         ];
 
-        // Ordenamiento descendente
+
         todosMovimientos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
-        // Evitar duplicados comparando (id + fecha + monto) mediante un Set de firmas
         const firmasVistas = new Set();
         const unicos = todosMovimientos.filter(item => {
           const firma = `${item.id}-${item.fecha}-${item.monto}`;
@@ -261,7 +257,6 @@ const MovimientosScreen = () => {
       ) : (
         <FlatList
           data={datosFiltrados}
-          // EL CAMBIO ESTÁ EN ESTA LÍNEA 👇
           keyExtractor={(item, index) => item.id ? `${item.tipo}-${item.id}` : index.toString()}
           renderItem={renderItem}
           contentContainerStyle={movimientoStyles.listaContenedor}

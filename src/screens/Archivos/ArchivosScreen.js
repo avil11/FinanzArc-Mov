@@ -8,13 +8,11 @@ import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 
-
-import { globalStyles } from "../../styles/styles";
 import { archivosStyles } from "./ArchivosStyles";
 
 
-const API_BASE_URL = "http://192.168.100.3:45455/api";
-const SERVER_HOST = "http://192.168.100.3:45455"; 
+const API_BASE_URL = "http://192.168.1.126:45457/api";
+const SERVER_HOST = "http://192.168.1.126:4541"; 
 
 
 const { width } = Dimensions.get("window");
@@ -311,24 +309,24 @@ export default function ArchivosScreen() {
       : (historialGastos.find(h => h.IdHistorialGasto === doc.IdGasto)?.Descripcion || "No encontrada");
 
     return (
-      <View key={isIngreso ? doc.IdDocumentoIngreso : doc.IdDocumentoGasto} style={styles.card}>
-        <View style={styles.cardContent}>
-          <View style={styles.thumbnailContainer}>
+      <View key={isIngreso ? doc.IdDocumentoIngreso : doc.IdDocumentoGasto} style={archivosStyles.card}>
+        <View style={archivosStyles.cardContent}>
+          <View style={archivosStyles.thumbnailContainer}>
             {esImagen(doc.ExtensionArchivo) ? (
-              <Image source={{ uri: `${SERVER_HOST}${doc.RutaArchivo}` }} style={styles.thumbnailImage} />
+              <Image source={{ uri: `${SERVER_HOST}${doc.RutaArchivo}` }} style={archivosStyles.thumbnailImage} />
             ) : (
-              <View style={styles.thumbnailGeneric}>
-                <Text style={styles.thumbnailText}>
+              <View style={archivosStyles.thumbnailGeneric}>
+                <Text style={archivosStyles.thumbnailText}>
                   {doc.ExtensionArchivo ? doc.ExtensionArchivo.replace(".", "").substring(0, 3).toUpperCase() : "DOC"}
                 </Text>
               </View>
             )}
           </View>
 
-          <View style={styles.cardDetails}>
-            <Text style={styles.cardTitle} numberOfLines={1}>{doc.NombreArchivoOriginal}</Text>
-            <Text style={styles.cardSubtitle} numberOfLines={1}>Ref: {refHistorial}</Text>
-            <Text style={styles.cardDate}>{new Date(doc.FechaCarga).toLocaleDateString()}</Text>
+          <View style={archivosStyles.cardDetails}>
+            <Text style={archivosStyles.cardTitle} numberOfLines={1}>{doc.NombreArchivoOriginal}</Text>
+            <Text style={archivosStyles.cardSubtitle} numberOfLines={1}>Ref: {refHistorial}</Text>
+            <Text style={archivosStyles.cardDate}>{new Date(doc.FechaCarga).toLocaleDateString()}</Text>
           </View>
         </View>
         <View style={archivosStyles.archivoDetalles}>
@@ -353,9 +351,9 @@ export default function ArchivosScreen() {
 
   if (cargando) {
     return (
-      <View style={styles.centerContainer}>
+      <View style={archivosStyles.centerContainer}>
         <ActivityIndicator size="large" color="#c8b277" />
-        <Text style={styles.loadingText}>Cargando repositorio documental...</Text>
+        <Text style={archivosStyles.loadingText}>Cargando repositorio documental...</Text>
       </View>
     );
   }
@@ -366,16 +364,16 @@ export default function ArchivosScreen() {
           <View style={{ marginBottom: 20, opacity: 0.8 }}>
             <Text style={{ fontSize: 50 }}>🔒</Text>
           </View>
-          <Text style={styles.premiumTitle}>Apartado restringido</Text>
-          <Text style={styles.premiumText}>
+          <Text style={archivosStyles.premiumTitle}>Apartado restringido</Text>
+          <Text style={archivosStyles.premiumText}>
             Para acceder a esta función, necesitas contar con nuestro plan Premium.
             ¡Desbloquea todo el potencial de FinanzARC ahora!
           </Text>
-          <TouchableOpacity activeOpacity={0.8} style={styles.btnPremium} onPress={() => navigation.navigate("planes")}>
-            <Text style={styles.btnPremiumText}>Mejorar mi Plan 🚀</Text>
+          <TouchableOpacity activeOpacity={0.8} style={archivosStyles.btnPremium} onPress={() => navigation.navigate("planes")}>
+            <Text style={archivosStyles.btnPremiumText}>Mejorar mi Plan 🚀</Text>
           </TouchableOpacity>
-          <TouchableOpacity activeOpacity={0.7} style={styles.btnBack} onPress={() => navigation.goBack()}>
-            <Text style={styles.btnBackText}>Volver al Inicio</Text>
+          <TouchableOpacity activeOpacity={0.7} style={archivosStyles.btnBack} onPress={() => navigation.goBack()}>
+            <Text style={archivosStyles.btnBackText}>Volver al Inicio</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -383,12 +381,12 @@ export default function ArchivosScreen() {
   }
   if (errorVista) {
     return (
-      <View style={styles.centerContainer}>
-        <View style={styles.errorCard}>
-          <Text style={styles.errorTitle}>{sesionExpirada ? "Autenticación" : "Error"}</Text>
-          <Text style={styles.errorText}>{errorVista}</Text>
-          <TouchableOpacity activeOpacity={0.8} style={styles.btnPremium} onPress={inicializarComponente}>
-            <Text style={styles.btnPremiumText}>Reintentar</Text>
+      <View style={archivosStyles.centerContainer}>
+        <View style={archivosStyles.errorCard}>
+          <Text style={archivosStyles.errorTitle}>{sesionExpirada ? "Autenticación" : "Error"}</Text>
+          <Text style={archivosStyles.errorText}>{errorVista}</Text>
+          <TouchableOpacity activeOpacity={0.8} style={archivosStyles.btnPremium} onPress={inicializarComponente}>
+            <Text style={archivosStyles.btnPremiumText}>Reintentar</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -396,12 +394,12 @@ export default function ArchivosScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+    <View style={archivosStyles.container}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={archivosStyles.scrollContent}>
 
-        <View style={styles.headerSection}>
-          <Text style={styles.headerTitle}>Comprobantes</Text>
-          <Text style={styles.headerSubtitle}>Gestor de tickets y facturas digitalizados.</Text>
+        <View style={archivosStyles.headerSection}>
+          <Text style={archivosStyles.headerTitle}>Comprobantes</Text>
+          <Text style={archivosStyles.headerSubtitle}>Gestor de tickets y facturas digitalizados.</Text>
         </View>
 
         <View style={archivosStyles.filtrosRow}>
@@ -449,31 +447,31 @@ export default function ArchivosScreen() {
           <Text style={archivosStyles.botonArchivarTexto}>+ Cargar Nuevo Comprobante</Text>
         </TouchableOpacity>
 
-        <View style={styles.tabsContainer}>
+        <View style={archivosStyles.tabsContainer}>
           <TouchableOpacity
             activeOpacity={0.7}
-            style={[styles.tabButton, panelActivo === "ingreso" && styles.tabButtonActive]}
+            style={[archivosStyles.tabButton, panelActivo === "ingreso" && archivosStyles.tabButtonActive]}
             onPress={() => setPanelActivo("ingreso")}
           >
-            <Text style={[styles.tabText, panelActivo === "ingreso" && styles.tabTextActive]}>Ingresos</Text>
+            <Text style={[archivosStyles.tabText, panelActivo === "ingreso" && archivosStyles.tabTextActive]}>Ingresos</Text>
           </TouchableOpacity>
           <TouchableOpacity
             activeOpacity={0.7}
-            style={[styles.tabButton, panelActivo === "gasto" && styles.tabButtonActive]}
+            style={[archivosStyles.tabButton, panelActivo === "gasto" && archivosStyles.tabButtonActive]}
             onPress={() => setPanelActivo("gasto")}
           >
-            <Text style={[styles.tabText, panelActivo === "gasto" && styles.tabTextActive]}>Gastos</Text>
+            <Text style={[archivosStyles.tabText, panelActivo === "gasto" && archivosStyles.tabTextActive]}>Gastos</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.listContainer}>
+        <View style={archivosStyles.listContainer}>
           {panelActivo === "ingreso" ? (
             ingresosFiltrados.length === 0 ? (
-              <View style={styles.emptyState}><Text style={styles.emptyStateText}>No hay ingresos cargados en este periodo.</Text></View>
+              <View style={archivosStyles.emptyState}><Text style={archivosStyles.emptyStateText}>No hay ingresos cargados en este periodo.</Text></View>
             ) : (ingresosFiltrados.map(doc => renderTarjetaDocumento(doc, "ingreso")))
           ) : (
             gastosFiltrados.length === 0 ? (
-              <View style={styles.emptyState}><Text style={styles.emptyStateText}>No hay gastos cargados en este periodo.</Text></View>
+              <View style={archivosStyles.emptyState}><Text style={archivosStyles.emptyStateText}>No hay gastos cargados en este periodo.</Text></View>
             ) : (gastosFiltrados.map(doc => renderTarjetaDocumento(doc, "gasto")))
           )}
         </View>
@@ -543,368 +541,3 @@ export default function ArchivosScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#121212",
-  },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 60,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#121212",
-    padding: 20,
-  },
-  loadingText: {
-    color: "#a0a0a0",
-    marginTop: 16,
-    fontSize: 16,
-  },
-  headerSection: {
-    marginBottom: 24,
-    marginTop: 10,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#c8b277",
-    marginBottom: 6,
-    letterSpacing: 0.5,
-  },
-  headerSubtitle: {
-    fontSize: 15,
-    color: "#a0a0a0",
-  },
-  filtersRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
-    marginBottom: 20,
-  },
-  pickerContainer: {
-    flex: 1,
-    backgroundColor: "#1e1e1e",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#333",
-    overflow: "hidden",
-    height: 50,
-    justifyContent: "center",
-  },
-  picker: {
-    color: "#fff",
-    width: "100%",
-  },
-  btnPrimary: {
-    backgroundColor: "#c8b277",
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    marginBottom: 24,
-    shadowColor: "#c8b277",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  btnPrimaryText: {
-    color: "#121212",
-    fontSize: 16,
-    fontWeight: "bold",
-    letterSpacing: 0.3,
-  },
-  tabsContainer: {
-    flexDirection: "row",
-    backgroundColor: "#1e1e1e",
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: 20,
-  },
-  tabButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  tabButtonActive: {
-    backgroundColor: "#333",
-  },
-  tabText: {
-    color: "#8e8e93",
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  tabTextActive: {
-    color: "#c8b277",
-  },
-  listContainer: {
-    flex: 1,
-  },
-  emptyState: {
-    padding: 30,
-    alignItems: "center",
-    backgroundColor: "#1e1e1e",
-    borderRadius: 16,
-    borderStyle: "dashed",
-    borderWidth: 1,
-    borderColor: "#333",
-  },
-  emptyStateText: {
-    color: "#8e8e93",
-    fontSize: 15,
-    textAlign: "center",
-  },
-  card: {
-    backgroundColor: "#1e1e1e",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#2a2a2a",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  cardContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  thumbnailContainer: {
-    marginRight: 16,
-  },
-  thumbnailImage: {
-    width: 56,
-    height: 56,
-    borderRadius: 10,
-    backgroundColor: "#2a2a2a",
-  },
-  thumbnailGeneric: {
-    width: 56,
-    height: 56,
-    borderRadius: 10,
-    backgroundColor: "#2a2a2a",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#333",
-  },
-  thumbnailText: {
-    color: "#c8b277",
-    fontWeight: "bold",
-    fontSize: 14,
-  },
-  cardDetails: {
-    flex: 1,
-  },
-  cardTitle: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 4,
-  },
-  cardSubtitle: {
-    color: "#a0a0a0",
-    fontSize: 13,
-    marginBottom: 4,
-  },
-  cardDate: {
-    color: "#c8b277",
-    fontSize: 12,
-    fontWeight: "500",
-  },
-  cardActions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#2a2a2a",
-    paddingTop: 12,
-  },
-  btnSecondary: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    backgroundColor: "rgba(200, 178, 119, 0.1)",
-  },
-  btnSecondaryText: {
-    color: "#c8b277",
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  btnDanger: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    backgroundColor: "rgba(255, 69, 58, 0.1)",
-  },
-  btnDangerText: {
-    color: "#ff453a",
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  /* ESTILOS DEL MODAL */
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  modalCard: {
-    backgroundColor: "#1e1e1e",
-    width: "100%",
-    maxWidth: 400,
-    borderRadius: 20,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: "#333",
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#c8b277",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  formGroup: {
-    marginBottom: 16,
-  },
-  formLabel: {
-    color: "#a0a0a0",
-    fontSize: 13,
-    marginBottom: 8,
-    fontWeight: "500",
-  },
-  fileDropZone: {
-    borderWidth: 1.5,
-    borderStyle: "dashed",
-    borderColor: "#c8b277",
-    borderRadius: 12,
-    paddingVertical: 20,
-    paddingHorizontal: 16,
-    alignItems: "center",
-    backgroundColor: "rgba(200, 178, 119, 0.05)",
-  },
-  fileDropText: {
-    color: "#8e8e93",
-    fontSize: 14,
-    textAlign: "center",
-  },
-  fileDropTextActive: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
-    textAlign: "center",
-  },
-  modalActions: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
-    marginTop: 24,
-  },
-  btnModalCancel: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 10,
-    backgroundColor: "#2a2a2a",
-    alignItems: "center",
-  },
-  btnModalCancelText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 15,
-  },
-  btnModalSubmit: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 10,
-    backgroundColor: "#c8b277",
-    alignItems: "center",
-  },
-  btnModalSubmitText: {
-    color: "#121212",
-    fontWeight: "bold",
-    fontSize: 15,
-  },
-  /* VISTAS DE ERROR Y PREMIUM */
-  premiumCard: {
-    backgroundColor: "#1e1e1e",
-    borderRadius: 20,
-    padding: 30,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#c8b277",
-    width: "100%",
-  },
-  iconContainer: {
-    backgroundColor: "rgba(200, 178, 119, 0.1)",
-    padding: 20,
-    borderRadius: 50,
-    marginBottom: 20,
-  },
-  lockIcon: {
-    fontSize: 40,
-  },
-  premiumTitle: {
-    color: "#c8b277",
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 12,
-  },
-  premiumText: {
-    color: "#a0a0a0",
-    textAlign: "center",
-    fontSize: 15,
-    lineHeight: 22,
-    marginBottom: 24,
-  },
-  btnPremium: {
-    backgroundColor: "#c8b277",
-    width: "100%",
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  btnPremiumText: {
-    color: "#121212",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  btnBack: {
-    paddingVertical: 12,
-  },
-  btnBackText: {
-    color: "#8e8e93",
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  errorCard: {
-    backgroundColor: "#1e1e1e",
-    borderRadius: 16,
-    padding: 24,
-    width: "100%",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#ff453a",
-  },
-  errorTitle: {
-    color: "#ff453a",
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 12,
-  },
-  errorText: {
-    color: "#a0a0a0",
-    textAlign: "center",
-    marginBottom: 24,
-  }
-});

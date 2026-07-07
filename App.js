@@ -6,7 +6,6 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { StyleSheet } from "react-native";
 
-// PANTALLAS (Importaciones limpias sin duplicados)
 import LoginScreen from "./src/screens/Login/LoginScreen";
 import GeneralScreen from "./src/screens/General/GeneralScreen";
 import MovimientosScreen from "./src/screens/Movimientos/MovimientosScreen";
@@ -31,7 +30,6 @@ export default function App() {
             cardStyle: { backgroundColor: "#121212" },
           }}
         >
-          {/* Un solo Stack por cada pantalla, evitando duplicados */}
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
           <Stack.Screen name="General" component={GeneralScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Movimientos" component={MovimientosScreen} options={{ title: "Movimientos" }} />
